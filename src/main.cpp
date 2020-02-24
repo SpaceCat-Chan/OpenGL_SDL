@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include <SDL.h>
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <SDL_opengl.h>
 
 #include "Window/Window.hpp"

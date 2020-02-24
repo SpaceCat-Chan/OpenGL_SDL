@@ -5,3 +5,4 @@ Docs/
 *.dll
 *.a
 *.s
+.vscode
