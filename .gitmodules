@@ -1,0 +1,3 @@
+[submodule "SDL-Helper-Libraries"]
+	path = SDL-Helper-Libraries
+	url = https://github.com/SpaceCat-Chan/SDL-Helper-Libraries.git
