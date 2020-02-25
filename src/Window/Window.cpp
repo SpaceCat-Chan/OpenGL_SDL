@@ -17,6 +17,8 @@ const Window &Window::operator=(Window &&Move)
 	m_Window = Move.m_Window;
 
 	Move.m_Window = nullptr;
+
+	return *this;
 }
 
 void Window::Destroy()
