@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <GL/glew.h>
 #include <SDL_opengl.h>
+#include <glm/ext.hpp>
 
 #include "Window/Window.hpp"
 
@@ -36,10 +37,9 @@ int main(int argc, char **argv)
 				Quit = true;
 			}
 		}
-		glClearColor(1, 0.5, 0.5, 1);
+		glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(window);
 	}
-
 	return 0;
 }
