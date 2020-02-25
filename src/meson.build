@@ -2,7 +2,9 @@
 
 sources = [
     'main.cpp',
-    'Window/Window.cpp'
+    'Window/Window.cpp',
+    'Camera/Camera.cpp',
+    'Mesh/Mesh.cpp'
 ]
 
 
@@ -14,4 +16,5 @@ depends = [
 ]
 
 
-executable('OpenGL_SDL', sources, dependencies: depends)
+executable('OpenGL_SDL', sources, dependencies: depends, install: true)
+install_subdir('../res', install_dir: 'bin/')

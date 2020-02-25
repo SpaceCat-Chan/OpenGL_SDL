@@ -90,44 +90,41 @@ void Camera::CreateProjection(double fovY, double AspectRatio, double NearClip, 
 	m_Projection = glm::perspective<double>(fovY, AspectRatio, NearClip, FarClip);
 }
 
-void Camera::LookIn(glm::dvec3 Direction, glm::dvec3 Up/*={0, 1, 0}*/) {
+void Camera::LookIn(glm::dvec3 Direction, glm::dvec3 Up /*={0, 1, 0}*/)
+{
 	m_LookVector = Direction;
 	m_Up = Up;
 
 	LockViewDirection();
 }
 
-void Camera::LookAt(glm::dvec3 Position, glm::dvec3 Up/*={0, 1, 0}*/) {
+void Camera::LookAt(glm::dvec3 Position, glm::dvec3 Up /*={0, 1, 0}*/)
+{
 	m_LookVector = Position;
 	m_Up = Up;
 
 	LockViewPosition();
 }
 
-void Camera::LockViewDirection() {
-	m_LookAt = Locked::Direction;
-	UpdateView();
-}
-
-void Camera::LockViewPosition() {
-	m_LookAt = Locked::Position;
-	UpdateView();
-}
-
-void Camera::Move(glm::dvec3 DeltaPosition) {
+void Camera::Move(glm::dvec3 DeltaPosition)
+{
 	m_Position += DeltaPosition;
 	UpdateView();
 }
-void Camera::MoveTo(glm::dvec3 Position) {
+void Camera::MoveTo(glm::dvec3 Position)
+{
 	m_Position = Position;
 	UpdateView();
 }
 
-void Camera::UpdateView() {
-	if(m_LookAt == Locked::Direction) {
-		m_View = glm::lookAt(m_Position, m_Position+m_LookVector, m_Up);
+void Camera::UpdateView()
+{
+	if (m_LookAt == Locked::Direction)
+	{
+		m_View = glm::lookAt(m_Position, m_Position + m_LookVector, m_Up);
 	}
-	else {
+	else
+	{
 		m_View = glm::lookAt(m_Position, m_LookVector, m_Up);
 	}
 }
