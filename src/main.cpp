@@ -13,6 +13,8 @@
 #include "Window/Window.hpp"
 #include "Camera/Camera.hpp"
 #include "Mesh/Mesh.hpp"
+#include "Shader/Shader.hpp"
+#include "SDL-Helper-Libraries/KeyTracker/KeyTracker.hpp"
 
 std::string get_file_contents(const char *filename)
 {
@@ -64,97 +66,79 @@ int main(int argc, char **argv)
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
-	std::string Vertex, Fragment;
-	unsigned int VertShader, FragShader;
-	unsigned int Program;
-
-	Vertex = get_file_contents("res/shader.vert");
-	Fragment = get_file_contents("res/shader.frag");
-
-	VertShader = glCreateShader(GL_VERTEX_SHADER);
-	FragShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	const char *InternalVert = Vertex.c_str(), *InternalFrag = Fragment.c_str();
-	GLint VertSize = Vertex.size(), FragSize = Fragment.size();
-
-	glShaderSource(VertShader, 1, &InternalVert, &VertSize);
-	glShaderSource(FragShader, 1, &InternalFrag, &FragSize);
-	glCompileShader(VertShader);
-	glCompileShader(FragShader);
-	int VertComp;
-	glGetShaderiv(VertShader, GL_COMPILE_STATUS, &VertComp);
-	if (VertComp == 0)
-	{
-		int maxLength;
-		glGetShaderiv(VertShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-		/* The maxLength includes the NULL character */
-		char *vertexInfoLog;
-		vertexInfoLog = (char *)malloc(maxLength);
-
-		glGetShaderInfoLog(VertShader, maxLength, &maxLength, vertexInfoLog);
-		std::cout << vertexInfoLog;
-
-		/* Handle the error in an appropriate way such as displaying a message or writing to a log file. */
-		/* In this simple program, we'll just leave */
-		free(vertexInfoLog);
-		return 1;
-	}
-	int FragComp;
-	glGetShaderiv(FragShader, GL_COMPILE_STATUS, &FragComp);
-	if (FragComp == 0)
-	{
-		int maxLength;
-		glGetShaderiv(FragShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-		/* The maxLength includes the NULL character */
-		char *vertexInfoLog;
-		vertexInfoLog = (char *)malloc(maxLength);
-
-		glGetShaderInfoLog(FragShader, maxLength, &maxLength, vertexInfoLog);
-		std::cout << vertexInfoLog;
-
-		/* Handle the error in an appropriate way such as displaying a message or writing to a log file. */
-		/* In this simple program, we'll just leave */
-		free(vertexInfoLog);
-		return 1;
-	}
-
-	Program = glCreateProgram();
-	glAttachShader(Program, VertShader);
-	glAttachShader(Program, FragShader);
-
-	glLinkProgram(Program);
-	GLuint MatrixID = glGetUniformLocation(Program, "MVP");
+	Shader Proj;
+	Proj.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
+	Proj.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
 
 	Mesh Cube;
 	Cube.LoadMesh("res/cube.obj");
 
 	Camera Yee;
-	Yee.CreateProjection(35, 4 / 3, 1, 100);
-	Yee.LookAt({0, 0, 0});
-	Yee.MoveTo({-10, 0, -10});
+	Yee.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
+	Yee.LookIn({0.5, 0.5, 0.5});
+	Yee.MoveTo({-0.5, -0.5, -0.5});
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	bool Quit = false;
 	SDL_Event Event;
+
+	KeyTracker Keyboard;
+
 	while (!Quit)
 	{
+		Keyboard.Update(1);
 		while (SDL_PollEvent(&Event))
 		{
+			Keyboard.UpdateKey(&Event);
 			switch (Event.type)
 			{
 
 			case SDL_QUIT:
 				Quit = true;
+				break;
 			}
 		}
+
+		if (Keyboard[SDL_SCANCODE_DOWN].Clicked)
+		{
+			glm::dvec3 Direction = Yee.GetViewVector();
+			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), 0.25, glm::cross(Direction, glm::dvec3{0, 1, 0}));
+			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
+		}
+		if (Keyboard[SDL_SCANCODE_UP].Clicked)
+		{
+			glm::dvec3 Direction = Yee.GetViewVector();
+			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), -0.25, glm::cross(Direction, glm::dvec3{0, 1, 0}));
+			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
+		}
+		if (Keyboard[SDL_SCANCODE_LEFT].Clicked)
+		{
+			glm::dvec3 Direction = Yee.GetViewVector();
+			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), -0.25, glm::dvec3{0, 1, 0});
+			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
+		}
+		if (Keyboard[SDL_SCANCODE_RIGHT].Clicked)
+		{
+			glm::dvec3 Direction = Yee.GetViewVector();
+			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), 0.25, glm::dvec3{0, 1, 0});
+			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
+		}
+		if (Keyboard[SDL_SCANCODE_W].Clicked)
+		{
+			Yee.Move((Yee.GetViewVector()) * 0.125);
+		}
+		if (Keyboard[SDL_SCANCODE_S].Clicked)
+		{
+			Yee.Move((Yee.GetViewVector()) * -0.125);
+		}
+
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		Cube.Bind();
 
-		glm::mat4 Matrix = Yee.GetMVP();
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &Matrix[0][0]);
+		Proj.SetUniform("MVP", Yee.GetMVP());
 		glDrawArrays(GL_TRIANGLES, 0, Cube.GetIndexCount());
 
 		SDL_GL_SwapWindow(window);

@@ -68,6 +68,10 @@ glm::dmat4x4 Camera::GetView()
 {
 	return m_View;
 }
+glm::dvec3 Camera::GetPosition()
+{
+	return m_Position;
+}
 
 glm::dmat4x4 Camera::GetMVP()
 {
@@ -85,8 +89,22 @@ void Camera::LockViewDirection()
 	UpdateView();
 }
 
+glm::dvec3 Camera::GetViewVector()
+{
+	return m_LookVector;
+}
+Camera::Locked Camera::GetViewLock()
+{
+	return m_LookAt;
+}
+
 void Camera::CreateProjection(double fovY, double AspectRatio, double NearClip, double FarClip)
 {
+	m_Projection = glm::perspective<double>(fovY, AspectRatio, NearClip, FarClip);
+}
+void Camera::CreateProjectionX(double fovX, double AspectRatio, double NearClip, double FarClip)
+{
+	double fovY = (2 * glm::atan(glm::tan(fovX * 0.5) * AspectRatio));
 	m_Projection = glm::perspective<double>(fovY, AspectRatio, NearClip, FarClip);
 }
 

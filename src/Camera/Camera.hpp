@@ -13,7 +13,8 @@
  * 
  * 
  */
-class Camera {
+class Camera
+{
 	glm::dmat4x4 m_Projection, m_View;
 	glm::dvec3 m_Position, m_LookVector, m_Up;
 
@@ -22,14 +23,14 @@ class Camera {
 	 */
 	void UpdateView();
 
-	enum class Locked {
+	enum class Locked
+	{
 		Position,
 		Direction
 	};
-	Locked m_LookAt=Locked::Direction;
+	Locked m_LookAt = Locked::Direction;
 
-	public:
-
+public:
 	Camera() = default;
 	/**
 	 * \brief Construct a Camera with a projection matrix and a view matrix
@@ -38,14 +39,25 @@ class Camera {
 	 * \param View the view matrix to use
 	 */
 	Camera(glm::dmat4x4 Projection, glm::dmat4x4 View);
-	Camera(const Camera& Copy);
-	Camera(Camera&& Move);
+	Camera(const Camera &Copy);
+	Camera(Camera &&Move);
 
-	const Camera& operator=(const Camera& Copy);
-	const Camera& operator=(Camera&& Move);
+	const Camera &operator=(const Camera &Copy);
+	const Camera &operator=(Camera &&Move);
 
 	void SetProjection(glm::dmat4x4 Projection);
 	glm::dmat4x4 GetProjection();
+
+	/**
+	 * \brief return the vector signifying the direction the camera is looking
+	 * 
+	 * the vector is either the direction or location, depending on the value of ViewLock
+	 */
+	glm::dvec3 GetViewVector();
+	/**
+	 * \brief return what the value of the ViewVector means
+	 */
+	Locked GetViewLock();
 
 	void SetView(glm::dmat4x4 View);
 	glm::dmat4x4 GetView();
@@ -73,6 +85,15 @@ class Camera {
 	 * \param FarClip the far clipping plane
 	 */
 	void CreateProjection(double fovY, double AspectRatio, double NearClip, double FarClip);
+	/**
+	 * \brief Creates a projection matrix
+	 * 
+	 * \param fovX the fov in the x direction
+	 * \param AspectRatio the aspect ratio of the window
+	 * \param NearClip the near clipping plane
+	 * \param FarClip the far clipping plane
+	 */
+	void CreateProjectionX(double fovX, double AspectRatio, double NearClip, double FarClip);
 
 	/**
 	 * \brief will make the camera look in a direction
@@ -83,7 +104,7 @@ class Camera {
 	 * \param Direction the direction to look in
 	 * \param Up a vector pointing upwards
 	 */
-	void LookIn(glm::dvec3 Direction, glm::dvec3 Up={0, 1, 0});
+	void LookIn(glm::dvec3 Direction, glm::dvec3 Up = {0, 1, 0});
 	/**
 	 * \brief will make the camera look at a position
 	 * 
@@ -93,8 +114,7 @@ class Camera {
 	 * \param Position the position to look at
 	 * \param Up a vector pointing upwards
 	 */
-	void LookAt(glm::dvec3 Position, glm::dvec3 Up={0, 1, 0});
-	
+	void LookAt(glm::dvec3 Position, glm::dvec3 Up = {0, 1, 0});
 
 	glm::dvec3 GetPosition();
 	/**
@@ -110,4 +130,3 @@ class Camera {
 	 */
 	void MoveTo(glm::dvec3 Position);
 };
-
