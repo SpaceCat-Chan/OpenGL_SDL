@@ -30,8 +30,19 @@ std::string get_file_contents(const char *filename)
 	throw(errno);
 }
 
-
-
+void GLAPIENTRY
+MessageCallback(GLenum source,
+				GLenum type,
+				GLuint id,
+				GLenum severity,
+				GLsizei length,
+				const GLchar *message,
+				const void *userParam)
+{
+	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+			(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+			type, severity, message);
+}
 
 int main(int argc, char **argv)
 {
@@ -50,12 +61,15 @@ int main(int argc, char **argv)
 
 	glewInit();
 
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
+
 	std::string Vertex, Fragment;
 	unsigned int VertShader, FragShader;
 	unsigned int Program;
 
-	Vertex = get_file_contents("res/Shader.vert");
-	Fragment = get_file_contents("res/Shader.frag");
+	Vertex = get_file_contents("res/shader.vert");
+	Fragment = get_file_contents("res/shader.frag");
 
 	VertShader = glCreateShader(GL_VERTEX_SHADER);
 	FragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -117,7 +131,7 @@ int main(int argc, char **argv)
 	Cube.LoadMesh("res/cube.obj");
 
 	Camera Yee;
-	Yee.CreateProjection(35, 4/3, 1, 100);
+	Yee.CreateProjection(35, 4 / 3, 1, 100);
 	Yee.LookAt({0, 0, 0});
 	Yee.MoveTo({-10, 0, -10});
 

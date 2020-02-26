@@ -27,7 +27,7 @@ void Mesh::LoadMesh(std::string Filename)
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, GL_ARRAY_BUFFER);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[1]);
 	glBufferData(GL_ARRAY_BUFFER, m_UVCoords.size() * sizeof(GLfloat), m_UVCoords.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, nullptr);
