@@ -16,20 +16,20 @@
 class Mesh
 {
 	unsigned int m_VertexArray = 0;
-	unsigned int m_VertexBuffer[2];
+	unsigned int m_VertexBuffer[3];
 	unsigned int m_IndexBuffer = 0;
 	size_t m_IndexAmount = 0;
 
 public:
 	Mesh()
 	{
-		glGenBuffers(2, m_VertexBuffer);
+		glGenBuffers(3, m_VertexBuffer);
 		glGenBuffers(1, &m_IndexBuffer);
 		glGenVertexArrays(1, &m_VertexArray);
 	}
 	~Mesh()
 	{
-		glDeleteBuffers(2, m_VertexBuffer);
+		glDeleteBuffers(3, m_VertexBuffer);
 		glDeleteBuffers(1, &m_IndexBuffer);
 		glDeleteVertexArrays(1, &m_VertexArray);
 	}

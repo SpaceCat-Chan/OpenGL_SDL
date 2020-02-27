@@ -2,7 +2,6 @@
 #include <iostream>
 #include <cassert>
 #include <fstream>
-#include <cerrno>
 #include <clocale>
 
 #include <SDL.h>
@@ -15,6 +14,8 @@
 #include "Mesh/Mesh.hpp"
 #include "Shader/Shader.hpp"
 #include "SDL-Helper-Libraries/KeyTracker/KeyTracker.hpp"
+
+#include "Common.hpp"
 
 std::string get_file_contents(const char *filename)
 {
@@ -85,8 +86,15 @@ int main(int argc, char **argv)
 
 	KeyTracker Keyboard;
 
+	auto LastTime = std::chrono::high_resolution_clock::now();
+
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+
 	while (!Quit)
 	{
+		auto Now = std::chrono::high_resolution_clock::now();
+		DSeconds dt = std::chrono::duration_cast<DSeconds>(Now - LastTime);
+
 		Keyboard.Update(1);
 		while (SDL_PollEvent(&Event))
 		{
@@ -97,41 +105,29 @@ int main(int argc, char **argv)
 			case SDL_QUIT:
 				Quit = true;
 				break;
+			
+			case SDL_MOUSEMOTION:
+			constexpr double Sensitivity=0.01;
+				glm::dvec3 CurrentDirection = Yee.GetViewVector();
+				glm::dmat4 Rotate = glm::rotate(glm::rotate(glm::dmat4x4(1), Event.motion.xrel*Sensitivity, glm::dvec3{0, 1, 0}), Event.motion.yrel*Sensitivity, glm::cross(CurrentDirection, glm::dvec3{0, 1, 0}));
+				Yee.LookIn(glm::dvec4{CurrentDirection, 0} * Rotate);
 			}
 		}
 
-		if (Keyboard[SDL_SCANCODE_DOWN].Clicked)
-		{
-			glm::dvec3 Direction = Yee.GetViewVector();
-			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), 0.25, glm::cross(Direction, glm::dvec3{0, 1, 0}));
-			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
+		if(Keyboard[SDL_SCANCODE_ESCAPE].Clicked) {
+			Quit = true;
 		}
-		if (Keyboard[SDL_SCANCODE_UP].Clicked)
+		
+		if (Keyboard[SDL_SCANCODE_W].Active)
 		{
-			glm::dvec3 Direction = Yee.GetViewVector();
-			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), -0.25, glm::cross(Direction, glm::dvec3{0, 1, 0}));
-			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
+			Yee.Move((glm::normalize(Yee.GetViewVector())) * (1.0 * dt.count()));
 		}
-		if (Keyboard[SDL_SCANCODE_LEFT].Clicked)
+		if (Keyboard[SDL_SCANCODE_S].Active)
 		{
-			glm::dvec3 Direction = Yee.GetViewVector();
-			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), -0.25, glm::dvec3{0, 1, 0});
-			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
+			Yee.Move((glm::normalize(Yee.GetViewVector())) * (1.0 * -dt.count()));
 		}
-		if (Keyboard[SDL_SCANCODE_RIGHT].Clicked)
-		{
-			glm::dvec3 Direction = Yee.GetViewVector();
-			glm::dmat4 Rotate = glm::rotate(glm::dmat4(1), 0.25, glm::dvec3{0, 1, 0});
-			Yee.LookIn(glm::dvec4{Direction, 0} * Rotate);
-		}
-		if (Keyboard[SDL_SCANCODE_W].Clicked)
-		{
-			Yee.Move((Yee.GetViewVector()) * 0.125);
-		}
-		if (Keyboard[SDL_SCANCODE_S].Clicked)
-		{
-			Yee.Move((Yee.GetViewVector()) * -0.125);
-		}
+
+		std::cout << dt.count() << '\n';
 
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -142,6 +138,8 @@ int main(int argc, char **argv)
 		glDrawArrays(GL_TRIANGLES, 0, Cube.GetIndexCount());
 
 		SDL_GL_SwapWindow(window);
+
+		LastTime = Now;
 	}
 	return 0;
 }
