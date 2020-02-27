@@ -1,6 +1,3 @@
-/**
- * \file Camera.hpp 
- */
 #pragma once
 
 #include <iostream>

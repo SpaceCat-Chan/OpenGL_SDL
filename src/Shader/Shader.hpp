@@ -1,7 +1,3 @@
-/**
- * \file Shader.hpp
- */
-
 #pragma once
 
 #include <vector>
@@ -21,6 +17,7 @@
  * \brief a class to handle shaders
  * 
  * it is not permitted to copy a Shader object
+ * 
  * all contained Shaders will be deleted when the class is deleted
  */
 class Shader

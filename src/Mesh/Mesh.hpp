@@ -1,6 +1,3 @@
-/**
- * \file Mesh.hpp
- */
 #pragma once
 
 #include <vector>
