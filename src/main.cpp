@@ -64,6 +64,7 @@ int main(int argc, char **argv)
 
 	glewInit();
 
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
@@ -77,7 +78,7 @@ int main(int argc, char **argv)
 	Camera Yee;
 	Yee.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
 	Yee.LookIn({0.5, 0.5, 0.5});
-	Yee.MoveTo({-0.5, -0.5, -0.5});
+	Yee.MoveTo({0, 60, 0});
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -127,14 +128,19 @@ int main(int argc, char **argv)
 			Yee.Move((glm::normalize(Yee.GetViewVector())) * (1.0 * -dt.count()));
 		}
 
-		std::cout << dt.count() << '\n';
+
 
 		glClearColor(0, 0, 0, 1);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		Cube.Bind();
 
 		Proj.SetUniform("MVP", Yee.GetMVP());
+		Proj.SetUniform("u_Model", glm::dmat4x4(1));
+		Proj.SetUniform("u_View", Yee.GetView());
+		Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
+		Proj.SetUniform("u_LightPosition", glm::dvec3{0, 50, 0});
+		Proj.SetUniform("u_AmbientColor", glm::dvec3{0.1, 0.1, 0.1});
 		glDrawArrays(GL_TRIANGLES, 0, Cube.GetIndexCount());
 
 		SDL_GL_SwapWindow(window);

@@ -8,18 +8,30 @@ layout(location = 2) in vec3 in_Normal;
 out vec3 Color;
 out vec3 Position;
 out vec3 Normal;
-//out vec2 out_UV;
+out vec3 LightDirection;
+//out vec2 UV;
 
 uniform mat4 MVP;
-uniform vec3 u_LightPosition;
+uniform mat4 u_Model;
+uniform mat4 u_View;
 uniform vec3 u_Color;
+uniform vec3 u_LightPosition;
 
 void main(void) {
-    //out_UV = in_UV;
+    //UV = in_UV;
 
-    float LightPower = clamp(dot(normalize(in_Normal), normalize(in_LightPosition)), 0.0, 1.0);
 
-    Color = u_Color * LightPower;
+    Color = u_Color;
+    Position = (u_Model * vec4(in_Position, 1)).xyz;
+    Normal = (u_View * u_Model * vec4(in_Normal, 0)).xyz;
+
+
+	vec3 EyeDirection_cameraspace = vec3(0,0,0) - ( u_View * u_Model * vec4(in_Position, 1)).xyz;
+    
+	vec3 LightPosition_cameraspace = ( u_View * vec4(u_LightPosition, 1)).xyz;
+	LightDirection = LightPosition_cameraspace + EyeDirection_cameraspace;
+
+    //Color = (u_View * vec4(in_Position, 1)).xyz; //normalize(( u_View * u_Model * vec4(in_Position, 1)).xyz);
 
     gl_Position = MVP * vec4(in_Position, 1);
 }
