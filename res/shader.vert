@@ -1,5 +1,4 @@
 #version 430
-//todo https://github.com/opengl-tutorials/ogl/blob/a9fe43fedef827240ce17c1c0f07e83e2680909a/tutorial08_basic_shading/StandardShading.vertexshader
 
 layout(location = 0) in vec3 in_Position;
 layout(location = 1) in vec2 in_UV;
