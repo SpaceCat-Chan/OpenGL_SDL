@@ -1,6 +1,17 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "Mesh.hpp"
 
+class MTLLoader : public tinyobj::MaterialReader
+{
+public:
+	MTLLoader() = default;
+	~MTLLoader() = default;
+	bool operator()(const std::string &matId,
+					std::vector<tinyobj::material_t> *materials,
+					std::map<std::string, int> *matMap,
+					std::string *warn, std::string *err) override;
+};
+
 void Mesh::LoadMesh(std::string Filename)
 {
 	tinyobj::attrib_t MeshAttributes;
@@ -11,7 +22,9 @@ void Mesh::LoadMesh(std::string Filename)
 
 	isfstream File(Filename, "r+");
 
-	bool Result = tinyobj::LoadObj(&MeshAttributes, &Shapes, &MeshMaterials, &Warn, &Error, &File);
+
+	MTLLoader MTL;
+	bool Result = tinyobj::LoadObj(&MeshAttributes, &Shapes, &MeshMaterials, &Warn, &Error, &File, &MTL);
 
 	if (!Warn.empty())
 	{
@@ -158,4 +171,26 @@ void Mesh::LoadMesh(std::string Filename)
 
 	glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, nullptr);
 	glEnableVertexAttribArray(2);
+}
+
+bool MTLLoader::operator()(const std::string &matId,
+						   std::vector<tinyobj::material_t> *materials,
+						   std::map<std::string, int> *matMap,
+						   std::string *warn, std::string *err)
+{
+	(void)err;
+	(void)matId;
+
+	std::string Filename = matId;
+	if(Filename[0] != '/' && Filename[0] != '\\')
+	{
+		Filename = "res/" + Filename;
+	}
+
+
+	isfstream File(Filename, "r+");
+
+	LoadMtl(matMap, materials, &File, warn, err);
+
+	return true;
 }

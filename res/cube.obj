@@ -1,7 +1,7 @@
 # cube.obj
 #
 
-mtllib res/cube.mtl
+mtllib cube.mtl
 
 o cube
  
