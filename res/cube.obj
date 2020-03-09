@@ -1,7 +1,7 @@
 # cube.obj
 #
 
-mtllib cube.mtl
+mtllib res/cube.mtl
 
 o cube
  
@@ -55,7 +55,6 @@ vn  1.0  0.0  0.0
 vn -1.0  0.0  0.0
 
 usemtl Yb
-#update the other vetexes by adding 8 plz
 f  9//2  15//2  13//2
 f  9//2  11//2  15//2 
 f  9//6  12//6  11//6 
