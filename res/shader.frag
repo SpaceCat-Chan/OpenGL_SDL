@@ -1,19 +1,27 @@
-#version 430
+#version 430 core
 
-in vec3 Color;
-in vec3 Position;
-in vec3 Normal;
-in vec3 LightDirection;
+in Material {
+    vec3 Color;
+    float Ambient;
+    float Diffuse;
+    float Specular;
+} material;
+
+//in vec3 model_Position;
+//in vec3 view_Normal;
+//in vec3 view_LightDirection;
 //in vec2 UV;
 
-uniform vec3 u_AmbientColor;
+uniform vec3 u_LightColor;
 
 layout(location = 0) out vec4 out_Color;
 
 void main(void) {
 
-    float LightPower = clamp(dot(normalize(Normal), normalize(LightDirection)), 0.0, 1.0);
+    vec3 AmbientColor = material.Ambient * material.Color * u_LightColor;
+
+    //float Diffuse = clamp(dot(normalize(view_Normal), normalize(view_LightDirection)), 0.0, 1.0);
 
     //out_Color = vec4(Color, 1);
-    out_Color = vec4((Color * LightPower) + u_AmbientColor, 1);
+    out_Color = vec4((material.Color * material.Diffuse) + AmbientColor, 1);
 }

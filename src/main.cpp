@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 		Proj.SetUniform("u_View", Yee.GetView());
 		Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
 		Proj.SetUniform("u_LightPosition", glm::dvec3{-0.5, -0.5, -0.5});
-		Proj.SetUniform("u_AmbientColor", Cube.Materials[0].Ambient);
+		Proj.SetUniform("u_LightColor", Cube.Materials[0].Ambient);
 		glDrawArrays(GL_TRIANGLES, 0, Cube.GetIndexCount(0));
 
 		Cube.Bind(1);
