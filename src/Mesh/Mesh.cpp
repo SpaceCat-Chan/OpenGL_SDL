@@ -12,7 +12,8 @@ public:
 					std::string *warn, std::string *err) override;
 };
 
-bool operator==(const tinyobj::index_t &lhs, const tinyobj::index_t &rhs) {
+bool operator==(const tinyobj::index_t &lhs, const tinyobj::index_t &rhs)
+{
 	return lhs.normal_index == rhs.normal_index && lhs.texcoord_index == rhs.texcoord_index && lhs.vertex_index == rhs.vertex_index;
 }
 
@@ -25,7 +26,6 @@ void Mesh::LoadMesh(std::string Filename)
 	std::string Warn, Error;
 
 	isfstream File(Filename, "r+");
-
 
 	MTLLoader MTL;
 	bool Result = tinyobj::LoadObj(&MeshAttributes, &Shapes, &MeshMaterials, &Warn, &Error, &File, &MTL);
@@ -60,14 +60,28 @@ void Mesh::LoadMesh(std::string Filename)
 
 		m_IndexBuffer.push_back(0);
 		ExpandedIndecies.emplace_back();
-		ExpToOrig.emplace_back();
+		//ExpToOrig.emplace_back();
 
 		for (size_t j = 0; j < Shapes[i].mesh.indices.size(); j++)
 		{
 			Sint64 Found = -1;
-			for (size_t k = 0; k < ExpToOrig[i].size(); k++)
+			//for (size_t k = 0; k < Positions.size() / 3; k++)
+			for (size_t k = 0; k < ExpandedIndecies[i].size(); k++)
 			{
-				if (Shapes[i].mesh.indices[j] == ExpToOrig[i][k])
+				//if (Shapes[i].mesh.indices[j] == Shapes[i].mesh.indices[k])
+				if (
+					false &&
+					Shapes[i].mesh.indices[j].vertex_index != -1 &&
+					Shapes[i].mesh.indices[j].texcoord_index != -1 &&
+					Shapes[i].mesh.indices[j].normal_index != -1 &&
+					MeshAttributes.vertices[Shapes[i].mesh.indices[j].vertex_index * 3] == Positions[k * 3] &&
+					MeshAttributes.vertices[Shapes[i].mesh.indices[j].vertex_index * 3 + 1] == Positions[k * 3 + 1] &&
+					MeshAttributes.vertices[Shapes[i].mesh.indices[j].vertex_index * 3 + 2] == Positions[k * 3 + 2] &&
+					MeshAttributes.texcoords[Shapes[i].mesh.indices[j].texcoord_index * 2] == UVCoords[k * 2] &&
+					MeshAttributes.vertices[Shapes[i].mesh.indices[j].texcoord_index * 2 + 1] == UVCoords[k * 2 + 1] &&
+					MeshAttributes.normals[Shapes[i].mesh.indices[j].normal_index * 3] == Positions[k * 3] &&
+					MeshAttributes.normals[Shapes[i].mesh.indices[j].normal_index * 3 + 1] == Normals[k * 3 + 1] &&
+					MeshAttributes.normals[Shapes[i].mesh.indices[j].normal_index * 3 + 2] == Normals[k * 3 + 2])
 				{
 					Found = k;
 					break;
@@ -75,6 +89,7 @@ void Mesh::LoadMesh(std::string Filename)
 			}
 			if (Found != -1)
 			{
+				//ExpToOrig[i].push_back(Shapes[i].mesh.indices[j]);
 				ExpandedIndecies[i].push_back(Found);
 			}
 			else
@@ -116,9 +131,10 @@ void Mesh::LoadMesh(std::string Filename)
 					Normals.push_back(0);
 				}
 
-				ExpandedIndecies[i].push_back(ExpandedIndecies[i].size());
-				ExpToOrig[i].push_back(Shapes[i].mesh.indices[j]);
+				ExpandedIndecies[i].push_back((Positions.size()-1)/3);
+				//ExpandedIndecies[i].push_back((ExpandedIndecies[i].size());
 			}
+			//ExpToOrig[i].push_back(Shapes[i].mesh.indices[j]);
 		}
 
 		glGenBuffers(1, &m_IndexBuffer[i]);
@@ -178,11 +194,10 @@ bool MTLLoader::operator()(const std::string &matId,
 	(void)matId;
 
 	std::string Filename = matId;
-	if(Filename[0] != '/' && Filename[0] != '\\')
+	if (Filename[0] != '/' && Filename[0] != '\\')
 	{
 		Filename = "res/" + Filename;
 	}
-
 
 	isfstream File(Filename, "r+");
 
