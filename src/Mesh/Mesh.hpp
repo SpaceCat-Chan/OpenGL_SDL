@@ -54,11 +54,23 @@ public:
 	 */
 	void LoadMesh(std::string Filename);
 
+	/**
+	 * \brief binds the selected Mesh
+	 * 
+	 * \param MeshIndex the index of the mesh to bind
+	 */
 	void Bind(size_t MeshIndex)
 	{
 		glBindVertexArray(m_VertexArray);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer[MeshIndex]);
 	}
 
+	/**
+	 * \brief return the amount of vertexes that a mesh has
+	 * 
+	 * \param MeshIndex the index of the mesh to count
+	 * 
+	 * \return the amount of vertexes
+	 */
 	size_t GetIndexCount(size_t MeshIndex) { return m_IndexAmount[MeshIndex]; }
 };
