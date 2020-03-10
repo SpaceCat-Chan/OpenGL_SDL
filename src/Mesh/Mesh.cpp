@@ -45,43 +45,27 @@ void Mesh::LoadMesh(std::string Filename)
 		return;
 	}
 
-	std::vector<float> Positions;
-	std::vector<float> UVCoords;
-	std::vector<float> Normals;
+	std::vector<GLfloat> Positions;
+	std::vector<GLfloat> UVCoords;
+	std::vector<GLfloat> Normals;
 
 	glBindVertexArray(m_VertexArray);
 
 	m_IndexBuffer.clear();
 	m_IndexAmount.size();
 	std::vector<std::vector<GLuint>> ExpandedIndecies;
-	std::vector<std::vector<tinyobj::index_t>> ExpToOrig;
 	for (size_t i = 0; i < Shapes.size(); i++)
 	{
 
 		m_IndexBuffer.push_back(0);
 		ExpandedIndecies.emplace_back();
-		//ExpToOrig.emplace_back();
 
 		for (size_t j = 0; j < Shapes[i].mesh.indices.size(); j++)
 		{
 			Sint64 Found = -1;
-			//for (size_t k = 0; k < Positions.size() / 3; k++)
 			for (size_t k = 0; k < ExpandedIndecies[i].size(); k++)
 			{
-				//if (Shapes[i].mesh.indices[j] == Shapes[i].mesh.indices[k])
-				if (
-					false &&
-					Shapes[i].mesh.indices[j].vertex_index != -1 &&
-					Shapes[i].mesh.indices[j].texcoord_index != -1 &&
-					Shapes[i].mesh.indices[j].normal_index != -1 &&
-					MeshAttributes.vertices[Shapes[i].mesh.indices[j].vertex_index * 3] == Positions[k * 3] &&
-					MeshAttributes.vertices[Shapes[i].mesh.indices[j].vertex_index * 3 + 1] == Positions[k * 3 + 1] &&
-					MeshAttributes.vertices[Shapes[i].mesh.indices[j].vertex_index * 3 + 2] == Positions[k * 3 + 2] &&
-					MeshAttributes.texcoords[Shapes[i].mesh.indices[j].texcoord_index * 2] == UVCoords[k * 2] &&
-					MeshAttributes.vertices[Shapes[i].mesh.indices[j].texcoord_index * 2 + 1] == UVCoords[k * 2 + 1] &&
-					MeshAttributes.normals[Shapes[i].mesh.indices[j].normal_index * 3] == Positions[k * 3] &&
-					MeshAttributes.normals[Shapes[i].mesh.indices[j].normal_index * 3 + 1] == Normals[k * 3 + 1] &&
-					MeshAttributes.normals[Shapes[i].mesh.indices[j].normal_index * 3 + 2] == Normals[k * 3 + 2])
+				if (Shapes[i].mesh.indices[j] == Shapes[i].mesh.indices[k])
 				{
 					Found = k;
 					break;
@@ -89,8 +73,7 @@ void Mesh::LoadMesh(std::string Filename)
 			}
 			if (Found != -1)
 			{
-				//ExpToOrig[i].push_back(Shapes[i].mesh.indices[j]);
-				ExpandedIndecies[i].push_back(Found);
+				ExpandedIndecies[i].push_back(ExpandedIndecies[i][Found]);
 			}
 			else
 			{
@@ -132,23 +115,13 @@ void Mesh::LoadMesh(std::string Filename)
 				}
 
 				ExpandedIndecies[i].push_back((Positions.size()-1)/3);
-				//ExpandedIndecies[i].push_back((ExpandedIndecies[i].size());
 			}
-			//ExpToOrig[i].push_back(Shapes[i].mesh.indices[j]);
 		}
 
 		glGenBuffers(1, &m_IndexBuffer[i]);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer[i]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ExpandedIndecies[i].size() * sizeof(GLuint), ExpandedIndecies[i].data(), GL_STATIC_DRAW);
 		m_IndexAmount.push_back(ExpandedIndecies[i].size());
-
-		std::cout << "IndexBuffer: " << i << "\nIndexBufferID: " << m_IndexBuffer[i] << "\nElements: \n";
-
-		for (size_t j = 0; j < ExpandedIndecies[i].size(); j++)
-		{
-			std::cout << "VertexID: " << ExpandedIndecies[i][j] << '\n';
-		}
-		std::cout << "\n";
 
 		Materials.push_back(Material());
 		if (Shapes[i].mesh.material_ids.size() && Shapes[i].mesh.material_ids[0] != -1)
@@ -163,7 +136,7 @@ void Mesh::LoadMesh(std::string Filename)
 			Materials[i].IlluminationMode = MeshMaterials[Shapes[i].mesh.material_ids[0]].illum;
 		}
 
-		std::cout << "Material " << Materials[i].Name << "\nAmbience {r, g, b}: {" << Materials[i].Ambient.r << ", " << Materials[i].Ambient.g << ", " << Materials[i].Ambient.b << "}\nDiffuse {r, g, b}: {" << Materials[i].Diffuse.r << ", " << Materials[i].Diffuse.g << ", " << Materials[i].Diffuse.b << "}\nSpecular {r, g, b}: {" << Materials[i].Specular.r << ", " << Materials[i].Specular.g << ", " << Materials[i].Specular.b << "}\nSpecularWeight: " << Materials[i].SpecularWeight << "\nAlpha: " << Materials[i].Alpha << "\nIlluminationMode: " << Materials[i].IlluminationMode << "\n\n";
+		std::cout << "Material " << Materials[i].Name << "\nAmbience {r, g, b}: {" << Materials[i].Ambient.r << ", " << Materials[i].Ambient.g << ", " << Materials[i].Ambient.b << "}\nDiffuse {r, g, b}: {" << Materials[i].Diffuse.r << ", " << Materials[i].Diffuse.g << ", " << Materials[i].Diffuse.b << "}\nSpecular {r, g, b}: {" << Materials[i].Specular.r << ", " << Materials[i].Specular.g << ", " << Materials[i].Specular.b << "}\nSpecularWeight: " << Materials[i].SpecularWeight << "\nAlpha: " << Materials[i].Alpha << "\nIlluminationMode: " << static_cast<int>(Materials[i].IlluminationMode) << "\n\n";
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[0]);

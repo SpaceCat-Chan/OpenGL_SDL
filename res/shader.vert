@@ -15,7 +15,7 @@ out Material {
 	float Specular;
 } material;
 
-//out vec3 Position;
+out vec3 Position;
 //out vec3 Normal;
 //out vec3 LightDirection;
 //out vec2 UV;
@@ -35,7 +35,7 @@ void main(void) {
 	//UV = in_UV;
 
 
-	//Position = (u_Model * vec4(in_Position, 1)).xyz;
+	Position = (u_Model * vec4(in_Position, 1)).xyz;
 	//Normal = (u_View * u_Model * vec4(in_Normal, 0)).xyz;
 
 

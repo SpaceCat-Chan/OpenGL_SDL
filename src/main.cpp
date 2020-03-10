@@ -95,6 +95,8 @@ int main(int argc, char **argv)
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	while (!Quit)
 	{
 		auto Now = std::chrono::high_resolution_clock::now();
@@ -137,6 +139,7 @@ int main(int argc, char **argv)
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		///*
 		Cube.Bind(0);
 
 		Proj.SetUniform("MVP", Yee.GetMVP());
@@ -145,8 +148,9 @@ int main(int argc, char **argv)
 		Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
 		Proj.SetUniform("u_LightPosition", glm::dvec3{-0.5, -0.5, -0.5});
 		Proj.SetUniform("u_LightColor", Cube.Materials[0].Ambient);
-		//glDrawArrays(GL_TRIANGLES, 0, Cube.GetIndexCount(0));
+		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(0), GL_UNSIGNED_INT, nullptr);//*/
 
+		///*
 		Cube.Bind(1);
 
 		Proj.SetUniform("MVP", Yee.GetMVP());
@@ -154,10 +158,12 @@ int main(int argc, char **argv)
 		Proj.SetUniform("u_View", Yee.GetView());
 		Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
 		Proj.SetUniform("u_LightPosition", glm::dvec3{-0.5, -0.5, -0.5});
-		Proj.SetUniform("u_LightColor", Cube.Materials[0].Ambient);
-		glDrawArrays(GL_TRIANGLES, 0, Cube.GetIndexCount(1));
+		Proj.SetUniform("u_LightColor", Cube.Materials[1].Ambient);
+		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(1), GL_UNSIGNED_INT, nullptr);//*/
 
 		SDL_GL_SwapWindow(window);
+
+		//std::cout << "CameraPosition {x, y, z}: {" << Yee.GetPosition().x << ", " << Yee.GetPosition().y << ", " << Yee.GetPosition().z << "}\n";
 
 		LastTime = Now;
 	}
