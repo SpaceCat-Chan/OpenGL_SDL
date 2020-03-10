@@ -18,7 +18,6 @@
 
 #include "Common.hpp"
 
-
 std::string get_file_contents(const char *filename)
 {
 	std::ifstream in(filename, std::ios::in | std::ios::binary);
@@ -74,11 +73,21 @@ int main(int argc, char **argv)
 	Proj.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
 	Proj.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
 
+	std::vector<Texture> DiffuseTextures;
+	std::vector<Texture> SpecularTextures;
 	Mesh Cube;
-	Cube.LoadMesh("res/cube.obj");
+	{
+		std::vector<std::string> DiffuseFiles;
+		std::vector<std::string> SpecularFiles;
 
-	Texture Image;
-	Image.Load("res/yay.png");
+		Cube.LoadMesh("res/cube.obj", DiffuseFiles, SpecularFiles);
+
+		for (size_t i = 0; i < DiffuseFiles.size(); ++i)
+		{
+			DiffuseTextures.push_back(Texture(DiffuseFiles[i]));
+			SpecularTextures.push_back(Texture(SpecularFiles[i]));
+		}
+	}
 
 	Camera Yee;
 	Yee.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
@@ -113,19 +122,20 @@ int main(int argc, char **argv)
 			case SDL_QUIT:
 				Quit = true;
 				break;
-			
+
 			case SDL_MOUSEMOTION:
-			constexpr double Sensitivity=0.01;
+				constexpr double Sensitivity = 0.01;
 				glm::dvec3 CurrentDirection = Yee.GetViewVector();
-				glm::dmat4 Rotate = glm::rotate(glm::rotate(glm::dmat4x4(1), Event.motion.xrel*Sensitivity, glm::dvec3{0, 1, 0}), Event.motion.yrel*Sensitivity, glm::cross(CurrentDirection, glm::dvec3{0, 1, 0}));
+				glm::dmat4 Rotate = glm::rotate(glm::rotate(glm::dmat4x4(1), Event.motion.xrel * Sensitivity, glm::dvec3{0, 1, 0}), Event.motion.yrel * Sensitivity, glm::cross(CurrentDirection, glm::dvec3{0, 1, 0}));
 				Yee.LookIn(glm::dvec4{CurrentDirection, 0} * Rotate);
 			}
 		}
 
-		if(Keyboard[SDL_SCANCODE_ESCAPE].Clicked) {
+		if (Keyboard[SDL_SCANCODE_ESCAPE].Clicked)
+		{
 			Quit = true;
 		}
-		
+
 		if (Keyboard[SDL_SCANCODE_W].Active)
 		{
 			Yee.Move((glm::normalize(Yee.GetViewVector())) * (1.0 * dt.count()));
@@ -135,29 +145,32 @@ int main(int argc, char **argv)
 			Yee.Move((glm::normalize(Yee.GetViewVector())) * (1.0 * -dt.count()));
 		}
 
-
-
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		///*
-		Cube.Bind(0);
 
-		Proj.SetUniform("u_Texture", 0);
+		for(size_t i = 0; i < DiffuseTextures.size(); i++) {
+			Cube.Bind(i);
 
-		Image.Bind();
+			Proj.SetUniform("u_Texture", 0);
+			Proj.SetUniform("u_Specular", 1);
+			
+			DiffuseTextures[i].Bind(0);
+			SpecularTextures[i].Bind(1);
 
-		Proj.SetUniform("MVP", Yee.GetMVP());
-		Proj.SetUniform("u_Model", glm::dmat4x4(1));
-		Proj.SetUniform("u_View", Yee.GetView());
-		Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
-		Proj.SetUniform("u_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{-10.0, 1, -10.0, 1}));
-		Proj.SetUniform("u_LightColor", {1, 1, 1});
-		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(0), GL_UNSIGNED_INT, nullptr);//*/
+			Proj.SetUniform("MVP", Yee.GetMVP());
+			Proj.SetUniform("u_Model", glm::dmat4x4(1));
+			Proj.SetUniform("u_View", Yee.GetView());
+			Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
+			Proj.SetUniform("u_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{-10.0, 1, -10.0, 1}));
+			Proj.SetUniform("u_LightColor", {1, 1, 1});
+			glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(i), GL_UNSIGNED_INT, nullptr);
+		}
 
-		///*
+		/*
 		Cube.Bind(1);
-		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(1), GL_UNSIGNED_INT, nullptr);//*/
+		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(1), GL_UNSIGNED_INT, nullptr); //*/
 
 		SDL_GL_SwapWindow(window);
 

@@ -23,7 +23,7 @@
 class Mesh
 {
 	GLuint m_VertexArray = 0;
-	GLuint m_VertexBuffer[8];
+	GLuint m_VertexBuffer[4];
 	std::vector<GLuint> m_IndexBuffer;
 	std::vector<size_t> m_IndexAmount;
 
@@ -32,12 +32,12 @@ class Mesh
 public:
 	Mesh()
 	{
-		glGenBuffers(8, m_VertexBuffer);
+		glGenBuffers(4, m_VertexBuffer);
 		glGenVertexArrays(1, &m_VertexArray);
 	}
 	~Mesh()
 	{
-		glDeleteBuffers(8, m_VertexBuffer);
+		glDeleteBuffers(4, m_VertexBuffer);
 		glDeleteVertexArrays(1, &m_VertexArray);
 
 		for(size_t i=0; i<m_IndexBuffer.size(); i++) {
@@ -49,10 +49,12 @@ public:
 	 * \brief a function that loads a mesh
 	 * 
 	 * \param Filename the name of the file to load from
+	 * \param DiffuseFile a referance to a vector of strings, will be filled with the filenames of all needed diffuse maps
+	 * \param SpecularFile same as DiffuseFile but for Specular map instead
 	 * 
 	 * there is currently no way to access the stored mesh data without major slowdown or changes to this class
 	 */
-	void LoadMesh(std::string Filename);
+	void LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFile, std::vector<std::string> &SpecularFile);
 
 	/**
 	 * \brief binds the selected Mesh
