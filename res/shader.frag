@@ -13,11 +13,12 @@ in VertexInfo {
 	in vec3 Normal;
 	in vec3 LightDirection;
 	float LightDistance;
-	//in vec2 UV;
+	in vec2 UV;
 } Fragment;
 
 
 uniform vec3 u_LightColor;
+uniform sampler2D u_Texture;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -38,5 +39,5 @@ void main(void) {
 	float SpecularPower = pow(max(dot(P, R), 0.0), material.Shininess);
 	vec3 Specular = material.Specular * SpecularPower * u_LightColor;
 
-	out_Color = vec4((Ambient + Diffuse + Specular) * material.Color, 1);
+	out_Color = vec4((Ambient + Diffuse + Specular) * texture(u_Texture, Fragment.UV).rgb, 1);
 }

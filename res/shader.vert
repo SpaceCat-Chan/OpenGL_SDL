@@ -22,7 +22,7 @@ out VertexInfo {
 	out vec3 Normal;
 	out vec3 LightDirection;
 	float LightDistance;
-	//out vec2 UV;
+	out vec2 UV;
 } vertex;
 
 
@@ -38,7 +38,7 @@ void main(void) {
 	material.Specular = in_Specular;
 	material.Shininess = in_Shininess;
 
-	//UV = in_UV;
+	vertex.UV = in_UV;
 
 	vertex.Normal = normalize(vec3(u_View * u_Model * vec4(in_Normal, 0)));
 

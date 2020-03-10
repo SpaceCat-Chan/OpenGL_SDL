@@ -13,6 +13,7 @@
 #include "Camera/Camera.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Shader/Shader.hpp"
+#include "Texture/Texture.hpp"
 #include "SDL-Helper-Libraries/KeyTracker/KeyTracker.hpp"
 
 #include "Common.hpp"
@@ -76,6 +77,8 @@ int main(int argc, char **argv)
 	Mesh Cube;
 	Cube.LoadMesh("res/cube.obj");
 
+	Texture Image;
+	Image.Load("res/yay.png");
 
 	Camera Yee;
 	Yee.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
@@ -139,6 +142,10 @@ int main(int argc, char **argv)
 
 		///*
 		Cube.Bind(0);
+
+		Proj.SetUniform("u_Texture", 0);
+
+		Image.Bind();
 
 		Proj.SetUniform("MVP", Yee.GetMVP());
 		Proj.SetUniform("u_Model", glm::dmat4x4(1));
