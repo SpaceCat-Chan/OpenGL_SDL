@@ -76,8 +76,6 @@ int main(int argc, char **argv)
 	Mesh Cube;
 	Cube.LoadMesh("res/cube.obj");
 
-	std::cout << Cube.Materials[0].Ambient.r << '\n';
-	std::cout << Cube.Materials[1].Ambient.r << '\n';
 
 	Camera Yee;
 	Yee.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
@@ -146,19 +144,12 @@ int main(int argc, char **argv)
 		Proj.SetUniform("u_Model", glm::dmat4x4(1));
 		Proj.SetUniform("u_View", Yee.GetView());
 		Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
-		Proj.SetUniform("u_LightPosition", glm::dvec3{-0.5, -0.5, -0.5});
-		Proj.SetUniform("u_LightColor", Cube.Materials[0].Ambient);
+		Proj.SetUniform("u_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{-10.0, 1, -10.0, 1}));
+		Proj.SetUniform("u_LightColor", {1, 1, 1});
 		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(0), GL_UNSIGNED_INT, nullptr);//*/
 
 		///*
 		Cube.Bind(1);
-
-		Proj.SetUniform("MVP", Yee.GetMVP());
-		Proj.SetUniform("u_Model", glm::dmat4x4(1));
-		Proj.SetUniform("u_View", Yee.GetView());
-		Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
-		Proj.SetUniform("u_LightPosition", glm::dvec3{-0.5, -0.5, -0.5});
-		Proj.SetUniform("u_LightColor", Cube.Materials[1].Ambient);
 		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(1), GL_UNSIGNED_INT, nullptr);//*/
 
 		SDL_GL_SwapWindow(window);

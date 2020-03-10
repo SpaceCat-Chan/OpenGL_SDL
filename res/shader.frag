@@ -2,15 +2,20 @@
 
 in Material {
 	vec3 Color;
-	float Ambient;
-	float Diffuse;
-	float Specular;
+	vec3 Ambient;
+	vec3 Diffuse;
+	vec3 Specular;
+	float Shininess;
 } material;
 
-in vec3 Position;
-//in vec3 view_Normal;
-//in vec3 view_LightDirection;
-//in vec2 UV;
+in VertexInfo {
+	in vec3 Position;
+	in vec3 Normal;
+	in vec3 LightDirection;
+	float LightDistance;
+	//in vec2 UV;
+} Fragment;
+
 
 uniform vec3 u_LightColor;
 
@@ -18,12 +23,20 @@ layout(location = 0) out vec4 out_Color;
 
 void main(void) {
 
-	vec3 AmbientColor = material.Ambient * material.Color * u_LightColor;
+	vec3 Ambient = material.Ambient * material.Color * u_LightColor;
 
-	//float Diffuse = clamp(dot(normalize(view_Normal), normalize(view_LightDirection)), 0.0, 1.0);
+	vec3 N = Fragment.Normal;
+	vec3 L = Fragment.LightDirection;
 
-	//out_Color = vec4(Color, 1);
-	//out_Color = vec4(1.0, 1.0, 1.0, 1.0);
-	out_Color = vec4(Position, 1);
-	//out_Color = vec4((material.Color * material.Diffuse) + AmbientColor, 1);
+	float DiffusePower = max(dot(N, L), 0.0);
+	vec3 Diffuse = material.Diffuse * DiffusePower * u_LightColor;
+	
+
+	vec3 R = reflect(-L, N);
+	vec3 P = normalize(Fragment.Position * -1);
+
+	float SpecularPower = pow(max(dot(P, R), 0.0), material.Shininess);
+	vec3 Specular = material.Specular * SpecularPower * u_LightColor;
+
+	out_Color = vec4((Ambient + Diffuse + Specular) * material.Color, 1);
 }

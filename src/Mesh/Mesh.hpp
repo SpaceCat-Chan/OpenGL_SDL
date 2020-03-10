@@ -13,21 +13,6 @@
 #include "tiny_obj_loader.h"
 
 
-/**
- * \brief a struct responsible for handeling information related to Materials
- */
-struct Material {
-	std::string Name;
-
-	glm::dvec3 Ambient = {0.2, 0.2, 0.2};
-	glm::dvec3 Diffuse = {0.8, 0.8, 0.8};
-	glm::dvec3 Specular = {1.0, 1.0, 1.0};
-	double SpecularWeight = 0;
-
-	double Alpha = 1;
-
-	uint8_t IlluminationMode = 1;
-};
 
 
 /**
@@ -38,22 +23,21 @@ struct Material {
 class Mesh
 {
 	GLuint m_VertexArray = 0;
-	GLuint m_VertexBuffer[3];
+	GLuint m_VertexBuffer[8];
 	std::vector<GLuint> m_IndexBuffer;
 	std::vector<size_t> m_IndexAmount;
 
 
 
 public:
-	std::vector<Material> Materials;
 	Mesh()
 	{
-		glGenBuffers(3, m_VertexBuffer);
+		glGenBuffers(8, m_VertexBuffer);
 		glGenVertexArrays(1, &m_VertexArray);
 	}
 	~Mesh()
 	{
-		glDeleteBuffers(3, m_VertexBuffer);
+		glDeleteBuffers(8, m_VertexBuffer);
 		glDeleteVertexArrays(1, &m_VertexArray);
 
 		for(size_t i=0; i<m_IndexBuffer.size(); i++) {
@@ -61,6 +45,13 @@ public:
 		}
 	}
 
+	/**
+	 * \brief a function that loads a mesh
+	 * 
+	 * \param Filename the name of the file to load from
+	 * 
+	 * there is currently no way to access the stored mesh data without major slowdown or changes to this class
+	 */
 	void LoadMesh(std::string Filename);
 
 	void Bind(size_t MeshIndex)
