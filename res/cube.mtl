@@ -7,3 +7,9 @@ newmtl shinyred
 map_Kd res/container.png
 map_Ks res/container_specular.png
 Ns 100.2237
+
+
+newmtl BrickWall
+map_Kd res/brickwall.jpg
+map_Bump res/brickwall_normal.jpg
+Ns 32.0

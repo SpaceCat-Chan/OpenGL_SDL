@@ -75,17 +75,22 @@ int main(int argc, char **argv)
 
 	std::vector<Texture> DiffuseTextures;
 	std::vector<Texture> SpecularTextures;
+	std::vector<Texture> BumpTextures;
+	std::vector<bool> UseBumpMap;
 	Mesh Cube;
 	{
 		std::vector<std::string> DiffuseFiles;
 		std::vector<std::string> SpecularFiles;
+		std::vector<std::string> BumpFiles;
 
-		Cube.LoadMesh("res/cube.obj", DiffuseFiles, SpecularFiles);
+		Cube.LoadMesh("res/cube.obj", DiffuseFiles, SpecularFiles, BumpFiles);
 
 		for (size_t i = 0; i < DiffuseFiles.size(); ++i)
 		{
 			DiffuseTextures.push_back(Texture(DiffuseFiles[i]));
 			SpecularTextures.push_back(Texture(SpecularFiles[i]));
+			BumpTextures.push_back(Texture(BumpFiles[i]));
+			UseBumpMap.push_back(BumpFiles[i] != "");
 		}
 	}
 
@@ -150,14 +155,17 @@ int main(int argc, char **argv)
 
 		///*
 
-		for(size_t i = 0; i < DiffuseTextures.size(); i++) {
+		for (size_t i = 0; i < DiffuseTextures.size(); i++)
+		{
 			Cube.Bind(i);
 
 			Proj.SetUniform("u_Texture", 0);
 			Proj.SetUniform("u_Specular", 1);
-			
+			Proj.SetUniform("u_Bump", 2);
+
 			DiffuseTextures[i].Bind(0);
 			SpecularTextures[i].Bind(1);
+			BumpTextures[i].Bind(2);
 
 			Proj.SetUniform("MVP", Yee.GetMVP());
 			Proj.SetUniform("u_Model", glm::dmat4x4(1));

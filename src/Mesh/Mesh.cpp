@@ -21,10 +21,11 @@ bool operator==(const Index &lhs, const Index &rhs)
 	return lhs.normal_index == rhs.normal_index && lhs.texcoord_index == rhs.texcoord_index && lhs.vertex_index == rhs.vertex_index && lhs.Material == rhs.Material;
 }
 
-void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFile, std::vector<std::string> &SpecularFile)
+void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles, std::vector<std::string> &SpecularFiles, std::vector<std::string> &BumpFiles)
 {
-	DiffuseFile.clear();
-	SpecularFile.clear();
+	DiffuseFiles.clear();
+	SpecularFiles.clear();
+	BumpFiles.clear();
 
 	tinyobj::attrib_t MeshAttributes;
 	std::vector<tinyobj::shape_t> Shapes;
@@ -165,8 +166,9 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFile,
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ExpandedIndexes[i].size() * sizeof(GLuint), ExpandedIndexes[i].data(), GL_STATIC_DRAW);
 		m_IndexAmount.push_back(ExpandedIndexes[i].size());
 
-		DiffuseFile.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].diffuse_texname);
-		SpecularFile.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].specular_texname);
+		DiffuseFiles.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].diffuse_texname);
+		SpecularFiles.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].specular_texname);
+		BumpFiles.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].bump_texname);
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[0]);

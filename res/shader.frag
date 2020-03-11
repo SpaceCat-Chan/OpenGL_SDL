@@ -16,6 +16,8 @@ in VertexInfo {
 uniform vec3 u_LightColor;
 uniform sampler2D u_Texture;
 uniform sampler2D u_Specular;
+uniform sampler2D u_Bump;
+uniform bool u_UseBumpMap;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -23,7 +25,16 @@ void main(void) {
 
 	vec3 Ambient = texture(u_Texture, Fragment.UV).rgb * u_LightColor;
 
-	vec3 N = Fragment.Normal;
+	vec3 Normal;
+	if(u_UseBumpMap) {
+		texture(u_Bump, Fragment.UV);
+		Normal = normalize(Normal * 2 - 1);
+	}
+	else {
+		Normal = Fragment.Normal;
+	}
+
+	vec3 N = Normal;
 	vec3 L = Fragment.LightDirection;
 
 	float DiffusePower = max(dot(N, L), 0.0);

@@ -49,12 +49,13 @@ public:
 	 * \brief a function that loads a mesh
 	 * 
 	 * \param Filename the name of the file to load from
-	 * \param DiffuseFile a referance to a vector of strings, will be filled with the filenames of all needed diffuse maps
-	 * \param SpecularFile same as DiffuseFile but for Specular map instead
+	 * \param DiffuseFiles a referance to a vector of strings, will be filled with the filenames of all needed diffuse maps
+	 * \param SpecularFiles same as DiffuseFile but for Specular map instead
+	 * \param BumpFiles same thing but for normals
 	 * 
 	 * there is currently no way to access the stored mesh data without major slowdown or changes to this class
 	 */
-	void LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFile, std::vector<std::string> &SpecularFile);
+	void LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles, std::vector<std::string> &SpecularFiles, std::vector<std::string> &BumpFiles);
 
 	/**
 	 * \brief binds the selected Mesh
