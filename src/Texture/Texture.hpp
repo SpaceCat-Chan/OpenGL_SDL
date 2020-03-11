@@ -41,7 +41,7 @@ class Texture {
 	 * 
 	 * if loading the file failed then the Texture will be unchanged
 	 */
-	bool Load(std::string Filename, bool File=true);
+	bool Load(std::string Filename, bool Flip=true);
 
 	/**
 	 * \brief binds the texture

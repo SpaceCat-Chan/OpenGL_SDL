@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 			DiffuseTextures.push_back(Texture(DiffuseFiles[i]));
 			SpecularTextures.push_back(Texture(SpecularFiles[i]));
 			std::cout << "i: " << i << "\nSpecMap: " << SpecularFiles[i] << '\n';
-			BumpTextures.push_back(Texture(BumpFiles[i], false));
+			BumpTextures.push_back(Texture(BumpFiles[i]));
 			UseBumpMap.push_back(BumpFiles[i] != "");
 		}
 	}

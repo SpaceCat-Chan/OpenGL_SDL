@@ -105,39 +105,43 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				StoredIndexes[i][j * 3 + 1].normal_index != -1 &&
 				StoredIndexes[i][j * 3 + 2].normal_index != -1)
 			{
-				glm::vec3 pos1, pos2, pos3;
-				pos1.x = MeshAttributes.vertices[StoredIndexes[i][j * 3].vertex_index * 3];
-				pos1.y = MeshAttributes.vertices[StoredIndexes[i][j * 3].vertex_index * 3 + 1];
-				pos1.z = MeshAttributes.vertices[StoredIndexes[i][j * 3].vertex_index * 3 + 2];
+				Index Index0 = StoredIndexes[i][j * 3];
+				Index Index1 = StoredIndexes[i][j * 3 + 1];
+				Index Index2 = StoredIndexes[i][j * 3 + 2];
 
-				pos2.x = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 1].vertex_index * 3];
-				pos2.y = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 1].vertex_index * 3 + 1];
-				pos2.z = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 1].vertex_index * 3 + 2];
+				glm::vec3 pos0, pos1, pos2;
+				pos0.x = MeshAttributes.vertices[Index0.vertex_index * 3];
+				pos0.y = MeshAttributes.vertices[Index0.vertex_index * 3 + 1];
+				pos0.z = MeshAttributes.vertices[Index0.vertex_index * 3 + 2];
 
-				pos3.x = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 2].vertex_index * 3];
-				pos3.y = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 2].vertex_index * 3 + 1];
-				pos3.z = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 2].vertex_index * 3 + 2];
+				pos1.x = MeshAttributes.vertices[Index1.vertex_index * 3];
+				pos1.y = MeshAttributes.vertices[Index1.vertex_index * 3 + 1];
+				pos1.z = MeshAttributes.vertices[Index1.vertex_index * 3 + 2];
 
-				glm::vec2 uv1, uv2, uv3;
-				uv1.x = MeshAttributes.texcoords[StoredIndexes[i][j * 3].texcoord_index * 2];
-				uv1.y = MeshAttributes.texcoords[StoredIndexes[i][j * 3].texcoord_index * 2 + 1];
+				pos2.x = MeshAttributes.vertices[Index2.vertex_index * 3];
+				pos2.y = MeshAttributes.vertices[Index2.vertex_index * 3 + 1];
+				pos2.z = MeshAttributes.vertices[Index2.vertex_index * 3 + 2];
 
-				uv2.x = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 1].texcoord_index * 2];
-				uv2.y = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 1].texcoord_index * 2 + 1];
+				glm::vec2 uv0, uv1, uv2;
+				uv0.x = MeshAttributes.texcoords[Index0.texcoord_index * 2];
+				uv0.y = MeshAttributes.texcoords[Index0.texcoord_index * 2 + 1];
 
-				uv3.x = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 2].texcoord_index * 2];
-				uv3.y = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 2].texcoord_index * 2 + 1];
+				uv1.x = MeshAttributes.texcoords[Index1.texcoord_index * 2];
+				uv1.y = MeshAttributes.texcoords[Index1.texcoord_index * 2 + 1];
 
-				glm::vec3 edge1 = pos2 - pos1;
-				glm::vec3 edge2 = pos3 - pos1;
-				glm::vec2 deltaUV1 = uv2 - uv1;
-				glm::vec2 deltaUV2 = uv3 - uv1;
+				uv2.x = MeshAttributes.texcoords[Index2.texcoord_index * 2];
+				uv2.y = MeshAttributes.texcoords[Index2.texcoord_index * 2 + 1];
+
+				glm::vec3 edge1 = pos1 - pos0;
+				glm::vec3 edge2 = pos2 - pos0;
+				glm::vec2 dUV1 = uv1 - uv0;
+				glm::vec2 dUV2 = uv2 - uv0;
 
 				glm::vec3 Result;
-				float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-				Result.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-				Result.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-				Result.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+				float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
+				Result.x = f * (edge1.x * dUV2.y - edge2.x * dUV1.y);
+				Result.y = f * (edge1.y * dUV2.y - edge2.y * dUV1.y);
+				Result.z = f * (edge1.z * dUV2.y - edge2.z * dUV1.y);
 				Result = glm::normalize(Result);
 
 				Tangents[i][j * 3] = Result;

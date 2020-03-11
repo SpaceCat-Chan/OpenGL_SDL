@@ -16,6 +16,10 @@ out VertexInfo {
 	out vec3 Tangent_LightDirection;
 	float Tangent_LightDistance;
 	out vec2 UV;
+	out mat3 TBN;
+	out vec3 Normal;
+	out vec3 Tangent;
+	out vec3 BiTangent;
 } vertex;
 
 
@@ -31,9 +35,15 @@ void main(void) {
 
 	T = normalize(T - dot(T, N) * N);
 
+
 	vec3 B = cross(N, T);
 
+	vertex.Normal = in_Model_Normal;
+	vertex.Tangent = in_Model_Tangent;
+	vertex.BiTangent = cross(in_Model_Normal, in_Model_Tangent);
+
 	mat3 TBN = transpose(mat3(T, B, N));
+	vertex.TBN = mat3(T, B, N);
 
 
 	material.Shininess = in_Shininess;

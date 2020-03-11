@@ -10,6 +10,10 @@ in VertexInfo {
 	in vec3 Tangent_LightDirection;
 	float Tangent_LightDistance;
 	in vec2 UV;
+	in mat3 TBN;
+	in vec3 Normal;
+	in vec3 Tangent;
+	in vec3 BiTangent;
 } Fragment;
 
 uniform mat4 u_Model;
@@ -28,7 +32,7 @@ void main(void) {
 
 	vec3 Tangent_Normal;
 	if(u_UseBumpMap) {
-		Tangent_Normal = -texture(u_Bump, Fragment.UV).xyz;
+		Tangent_Normal = texture(u_Bump, Fragment.UV).xyz;
 		Tangent_Normal = Tangent_Normal * 2.0 - 1.0;
 		Tangent_Normal = vec3(Tangent_Normal.x, Tangent_Normal.y, Tangent_Normal.z);
 		Tangent_Normal = normalize(Tangent_Normal);
@@ -55,6 +59,16 @@ void main(void) {
 	Ambient *= Attenuation;
 	Diffuse *= Attenuation;
 	Specular *= Attenuation;
-
+	/*
+	if(gl_FragCoord.x < 800/3) {
+		out_Color = vec4(Fragment.Normal * 0.5 + 0.5 ,1);
+		//out_Color = vec4(vec3(inverse(u_Model) * inverse(u_View) * vec4(Fragment.TBN * N,0)) * 0.5 + 0.5, 1);
+	}
+	else if(gl_FragCoord.x < 800/3*2) {
+		out_Color = vec4(Fragment.Tangent * 0.5 + 0.5, 1);
+	}
+	else {
+		out_Color = vec4(Fragment.BiTangent * 0.5 + 0.5, 1);
+	}*/
 	out_Color = vec4((Ambient + Diffuse + Specular), 1);
 }
