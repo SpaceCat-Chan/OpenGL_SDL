@@ -30,6 +30,10 @@ bool Texture::Load(std::string Filename) {
 		glBindTexture(GL_TEXTURE_2D, m_TextureID);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_W, m_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, Image);
 		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		stbi_image_free(Image);
 		return true;
 	}
@@ -40,7 +44,6 @@ bool Texture::Load(std::string Filename) {
 }
 
 void Texture::Bind(size_t Position/*=0*/) {
-	if (m_TextureID == 0) return;
 	glActiveTexture(GL_TEXTURE0 + Position);
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
 }

@@ -12,7 +12,8 @@ public:
 					std::string *warn, std::string *err) override;
 };
 
-struct Index : public tinyobj::index_t {
+struct Index : public tinyobj::index_t
+{
 	int Material;
 };
 
@@ -57,6 +58,8 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	std::vector<GLfloat> UVCoords;
 	std::vector<GLfloat> Normals;
 	std::vector<GLfloat> Shininess;
+	std::vector<std::vector<glm::vec3>> Tangents;
+	std::vector<GLfloat> TangentsAvaregedAndSplit;
 
 	glBindVertexArray(m_VertexArray);
 
@@ -66,25 +69,81 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	std::vector<std::vector<Index>> StoredIndexes;
 
 	//this is needed for forcing materials to be per vertex
-	for (size_t i=0; i < Shapes.size(); i++) {
+	for (size_t i = 0; i < Shapes.size(); i++)
+	{
 		StoredIndexes.emplace_back();
-		for(size_t j=0; j < Shapes[i].mesh.num_face_vertices.size(); j++) {
+		Tangents.emplace_back();
+		for (size_t j = 0; j < Shapes[i].mesh.num_face_vertices.size(); j++)
+		{
 			StoredIndexes[i].emplace_back();
 			StoredIndexes[i].emplace_back();
 			StoredIndexes[i].emplace_back();
-			StoredIndexes[i][j*3].normal_index = Shapes[i].mesh.indices[j*3].normal_index;
-			StoredIndexes[i][j*3+1].normal_index = Shapes[i].mesh.indices[j*3+1].normal_index;
-			StoredIndexes[i][j*3+2].normal_index = Shapes[i].mesh.indices[j*3+2].normal_index;
-			StoredIndexes[i][j*3].texcoord_index = Shapes[i].mesh.indices[j*3].texcoord_index;
-			StoredIndexes[i][j*3+1].texcoord_index = Shapes[i].mesh.indices[j*3+1].texcoord_index;
-			StoredIndexes[i][j*3+2].texcoord_index = Shapes[i].mesh.indices[j*3+2].texcoord_index;
-			StoredIndexes[i][j*3].vertex_index = Shapes[i].mesh.indices[j*3].vertex_index;
-			StoredIndexes[i][j*3+1].vertex_index = Shapes[i].mesh.indices[j*3+1].vertex_index;
-			StoredIndexes[i][j*3+2].vertex_index = Shapes[i].mesh.indices[j*3+2].vertex_index;
+			Tangents[i].emplace_back();
+			Tangents[i].emplace_back();
+			Tangents[i].emplace_back();
+			StoredIndexes[i][j * 3].normal_index = Shapes[i].mesh.indices[j * 3].normal_index;
+			StoredIndexes[i][j * 3 + 1].normal_index = Shapes[i].mesh.indices[j * 3 + 1].normal_index;
+			StoredIndexes[i][j * 3 + 2].normal_index = Shapes[i].mesh.indices[j * 3 + 2].normal_index;
+			StoredIndexes[i][j * 3].texcoord_index = Shapes[i].mesh.indices[j * 3].texcoord_index;
+			StoredIndexes[i][j * 3 + 1].texcoord_index = Shapes[i].mesh.indices[j * 3 + 1].texcoord_index;
+			StoredIndexes[i][j * 3 + 2].texcoord_index = Shapes[i].mesh.indices[j * 3 + 2].texcoord_index;
+			StoredIndexes[i][j * 3].vertex_index = Shapes[i].mesh.indices[j * 3].vertex_index;
+			StoredIndexes[i][j * 3 + 1].vertex_index = Shapes[i].mesh.indices[j * 3 + 1].vertex_index;
+			StoredIndexes[i][j * 3 + 2].vertex_index = Shapes[i].mesh.indices[j * 3 + 2].vertex_index;
 
-			StoredIndexes[i][j*3].Material = Shapes[i].mesh.material_ids[j];
-			StoredIndexes[i][j*3+1].Material = Shapes[i].mesh.material_ids[j];
-			StoredIndexes[i][j*3+2].Material = Shapes[i].mesh.material_ids[j];			
+			StoredIndexes[i][j * 3].Material = Shapes[i].mesh.material_ids[j];
+			StoredIndexes[i][j * 3 + 1].Material = Shapes[i].mesh.material_ids[j];
+			StoredIndexes[i][j * 3 + 2].Material = Shapes[i].mesh.material_ids[j];
+
+			if (StoredIndexes[i][j * 3].vertex_index != -1 &&
+				StoredIndexes[i][j * 3 + 1].vertex_index != -1 &&
+				StoredIndexes[i][j * 3 + 2].vertex_index != -1 &&
+				StoredIndexes[i][j * 3].texcoord_index != -1 &&
+				StoredIndexes[i][j * 3 + 1].texcoord_index != -1 &&
+				StoredIndexes[i][j * 3 + 2].texcoord_index != -1 &&
+				StoredIndexes[i][j * 3].normal_index != -1 &&
+				StoredIndexes[i][j * 3 + 1].normal_index != -1 &&
+				StoredIndexes[i][j * 3 + 2].normal_index != -1)
+			{
+				glm::vec3 pos1, pos2, pos3;
+				pos1.x = MeshAttributes.vertices[StoredIndexes[i][j * 3].vertex_index * 3];
+				pos1.y = MeshAttributes.vertices[StoredIndexes[i][j * 3].vertex_index * 3 + 1];
+				pos1.z = MeshAttributes.vertices[StoredIndexes[i][j * 3].vertex_index * 3 + 2];
+
+				pos2.x = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 1].vertex_index * 3];
+				pos2.y = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 1].vertex_index * 3 + 1];
+				pos2.z = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 1].vertex_index * 3 + 2];
+
+				pos3.x = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 2].vertex_index * 3];
+				pos3.y = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 2].vertex_index * 3 + 1];
+				pos3.z = MeshAttributes.vertices[StoredIndexes[i][j * 3 + 2].vertex_index * 3 + 2];
+
+				glm::vec2 uv1, uv2, uv3;
+				uv1.x = MeshAttributes.texcoords[StoredIndexes[i][j * 3].texcoord_index * 2];
+				uv1.y = MeshAttributes.texcoords[StoredIndexes[i][j * 3].texcoord_index * 2 + 1];
+
+				uv2.x = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 1].texcoord_index * 2];
+				uv2.y = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 1].texcoord_index * 2 + 1];
+
+				uv3.x = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 2].texcoord_index * 2];
+				uv3.y = MeshAttributes.texcoords[StoredIndexes[i][j * 3 + 2].texcoord_index * 2 + 1];
+
+				glm::vec3 edge1 = pos2 - pos1;
+				glm::vec3 edge2 = pos3 - pos1;
+				glm::vec2 deltaUV1 = uv2 - uv1;
+				glm::vec2 deltaUV2 = uv3 - uv1;
+
+				glm::vec3 Result;
+				float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+				Result.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+				Result.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+				Result.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+				Result = glm::normalize(Result);
+
+				Tangents[i][j * 3] = Result;
+				Tangents[i][j * 3 + 1] = Result;
+				Tangents[i][j * 3 + 2] = Result;
+			}
 		}
 	}
 
@@ -148,7 +207,7 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 					Normals.push_back(0);
 				}
 
-				if(StoredIndexes[i][j].Material != -1)
+				if (StoredIndexes[i][j].Material != -1)
 				{
 					Shininess.push_back(MeshMaterials[StoredIndexes[i][j].Material].shininess);
 				}
@@ -157,7 +216,11 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 					Shininess.push_back(1.0);
 				}
 
-				ExpandedIndexes[i].push_back((Positions.size()-1)/3);
+				TangentsAvaregedAndSplit.push_back(Tangents[i][j].x);
+				TangentsAvaregedAndSplit.push_back(Tangents[i][j].y);
+				TangentsAvaregedAndSplit.push_back(Tangents[i][j].z);
+
+				ExpandedIndexes[i].push_back((Positions.size() - 1) / 3);
 			}
 		}
 
@@ -193,6 +256,11 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	glBufferData(GL_ARRAY_BUFFER, Shininess.size() * sizeof(GLfloat), Shininess.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(3, 1, GL_FLOAT, false, 0, nullptr);
 	glEnableVertexAttribArray(3);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[4]);
+	glBufferData(GL_ARRAY_BUFFER, TangentsAvaregedAndSplit.size() * sizeof(GLfloat), TangentsAvaregedAndSplit.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(4, 3, GL_FLOAT, false, 0, nullptr);
+	glEnableVertexAttribArray(4);
 }
 
 bool MTLLoader::operator()(const std::string &matId,

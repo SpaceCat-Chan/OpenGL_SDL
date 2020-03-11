@@ -89,6 +89,7 @@ int main(int argc, char **argv)
 		{
 			DiffuseTextures.push_back(Texture(DiffuseFiles[i]));
 			SpecularTextures.push_back(Texture(SpecularFiles[i]));
+			std::cout << "i: " << i << "\nSpecMap: " << SpecularFiles[i] << '\n';
 			BumpTextures.push_back(Texture(BumpFiles[i]));
 			UseBumpMap.push_back(BumpFiles[i] != "");
 		}
@@ -171,8 +172,9 @@ int main(int argc, char **argv)
 			Proj.SetUniform("u_Model", glm::dmat4x4(1));
 			Proj.SetUniform("u_View", Yee.GetView());
 			Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
-			Proj.SetUniform("u_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{-10.0, 1, -10.0, 1}));
+			Proj.SetUniform("u_Camera_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{0.3, 0.15, -1.0, 1}));
 			Proj.SetUniform("u_LightColor", {1, 1, 1});
+			Proj.SetUniform("u_UseBumpMap", UseBumpMap[i]);
 			glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(i), GL_UNSIGNED_INT, nullptr);
 		}
 
@@ -182,7 +184,7 @@ int main(int argc, char **argv)
 
 		SDL_GL_SwapWindow(window);
 
-		//std::cout << "CameraPosition {x, y, z}: {" << Yee.GetPosition().x << ", " << Yee.GetPosition().y << ", " << Yee.GetPosition().z << "}\n";
+		std::cout << "CameraPosition {x, y, z}: {" << Yee.GetPosition().x << ", " << Yee.GetPosition().y << ", " << Yee.GetPosition().z << "}\n";
 
 		LastTime = Now;
 	}

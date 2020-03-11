@@ -11,5 +11,6 @@ Ns 100.2237
 
 newmtl BrickWall
 map_Kd res/brickwall.jpg
-map_Bump res/brickwall_normal.jpg
+map_Ks res/white.png
+map_bump res/brickwall_normal.jpg
 Ns 32.0

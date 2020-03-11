@@ -23,7 +23,7 @@
 class Mesh
 {
 	GLuint m_VertexArray = 0;
-	GLuint m_VertexBuffer[4];
+	GLuint m_VertexBuffer[5];
 	std::vector<GLuint> m_IndexBuffer;
 	std::vector<size_t> m_IndexAmount;
 
@@ -32,12 +32,12 @@ class Mesh
 public:
 	Mesh()
 	{
-		glGenBuffers(4, m_VertexBuffer);
+		glGenBuffers(5, m_VertexBuffer);
 		glGenVertexArrays(1, &m_VertexArray);
 	}
 	~Mesh()
 	{
-		glDeleteBuffers(4, m_VertexBuffer);
+		glDeleteBuffers(5, m_VertexBuffer);
 		glDeleteVertexArrays(1, &m_VertexArray);
 
 		for(size_t i=0; i<m_IndexBuffer.size(); i++) {
