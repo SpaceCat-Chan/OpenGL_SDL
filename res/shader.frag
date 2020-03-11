@@ -28,8 +28,10 @@ void main(void) {
 
 	vec3 Tangent_Normal;
 	if(u_UseBumpMap) {
-		Tangent_Normal = texture(u_Bump, Fragment.UV).xyz;
-		Tangent_Normal = normalize(Tangent_Normal * 2.0 - 1.0);
+		Tangent_Normal = -texture(u_Bump, Fragment.UV).xyz;
+		Tangent_Normal = Tangent_Normal * 2.0 - 1.0;
+		Tangent_Normal = vec3(Tangent_Normal.x, Tangent_Normal.y, Tangent_Normal.z);
+		Tangent_Normal = normalize(Tangent_Normal);
 	}
 	else {
 		Tangent_Normal = Fragment.Tangent_Normal;
@@ -42,10 +44,10 @@ void main(void) {
 	vec3 Diffuse = texture(u_Texture, Fragment.UV).rgb * DiffusePower * u_LightColor;
 	
 
-	vec3 R = reflect(-L, N);
 	vec3 P = normalize(Fragment.Tangent_ModelPosition * -1);
+	vec3 H = normalize(L + P);
 
-	float SpecularPower = pow(max(dot(P, R), 0.0), material.Shininess);
+	float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
 	vec3 Specular = texture(u_Specular, Fragment.UV).rgb * SpecularPower * u_LightColor;
 
 	float Attenuation = 1 / (Fragment.Tangent_LightDistance);
@@ -54,5 +56,5 @@ void main(void) {
 	Diffuse *= Attenuation;
 	Specular *= Attenuation;
 
-	out_Color = vec4(Ambient + Diffuse + Specular, 1);
+	out_Color = vec4((Ambient + Diffuse + Specular), 1);
 }

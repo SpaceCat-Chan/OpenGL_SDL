@@ -2,8 +2,8 @@
 #include "Texture.hpp"
 
 
-Texture::Texture(std::string Filename) {
-	Load(Filename);
+Texture::Texture(std::string Filename, bool Flip/*=true*/) {
+	Load(Filename, Flip);
 }
 
 Texture::Texture(Texture&& Move) {
@@ -22,7 +22,8 @@ const Texture& Texture::operator=(Texture &&Move) {
 	return *this;
 }
 
-bool Texture::Load(std::string Filename) {
+bool Texture::Load(std::string Filename, bool Flip/*=true*/) {
+	stbi_set_flip_vertically_on_load(Flip);
 	unsigned char *Image = stbi_load(Filename.c_str(), &m_W, &m_H, nullptr, STBI_rgb_alpha);
 	if(Image) {
 		Destroy();

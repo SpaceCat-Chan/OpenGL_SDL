@@ -24,7 +24,7 @@ class Texture {
 	~Texture() {
 		Destroy();
 	}
-	Texture(std::string Filename);
+	Texture(std::string Filename, bool Flip=true);
 	Texture(const Texture&) = delete;
 	Texture(Texture&&);
 
@@ -35,12 +35,13 @@ class Texture {
 	 * \brief loads a Texture from a file
 	 * 
 	 * \param Filename the name of the file to load from
+	 * \param Flip wether or not to flip the image on loads
 	 * 
 	 * \return weather or not the loading succeded
 	 * 
 	 * if loading the file failed then the Texture will be unchanged
 	 */
-	bool Load(std::string Filename);
+	bool Load(std::string Filename, bool File=true);
 
 	/**
 	 * \brief binds the texture

@@ -13,4 +13,4 @@ newmtl BrickWall
 map_Kd res/brickwall.jpg
 map_Ks res/white.png
 map_bump res/brickwall_normal.jpg
-Ns 32.0
+Ns 128.0
