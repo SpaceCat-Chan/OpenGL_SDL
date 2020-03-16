@@ -77,13 +77,16 @@ int main(int argc, char **argv)
 	std::vector<Texture> SpecularTextures;
 	std::vector<Texture> BumpTextures;
 	std::vector<bool> UseBumpMap;
+	std::vector<Texture>  DispTextures;
+	std::vector<bool> UseDispMap;
 	Mesh Cube;
 	{
 		std::vector<std::string> DiffuseFiles;
 		std::vector<std::string> SpecularFiles;
 		std::vector<std::string> BumpFiles;
+		std::vector<std::string> DispFiles;
 
-		Cube.LoadMesh("res/cube.obj", DiffuseFiles, SpecularFiles, BumpFiles);
+		Cube.LoadMesh("res/cube.obj", DiffuseFiles, SpecularFiles, BumpFiles, DispFiles);
 
 		for (size_t i = 0; i < DiffuseFiles.size(); ++i)
 		{
@@ -92,6 +95,8 @@ int main(int argc, char **argv)
 			std::cout << "i: " << i << "\nSpecMap: " << SpecularFiles[i] << '\n';
 			BumpTextures.push_back(Texture(BumpFiles[i]));
 			UseBumpMap.push_back(BumpFiles[i] != "");
+			DispTextures.push_back(Texture(DispFiles[i]));
+			UseDispMap.push_back(DispFiles[i] != "");
 		}
 	}
 
@@ -163,18 +168,21 @@ int main(int argc, char **argv)
 			Proj.SetUniform("u_Texture", 0);
 			Proj.SetUniform("u_Specular", 1);
 			Proj.SetUniform("u_Bump", 2);
+			Proj.SetUniform("u_Disp", 3);
 
 			DiffuseTextures[i].Bind(0);
 			SpecularTextures[i].Bind(1);
 			BumpTextures[i].Bind(2);
+			DispTextures[i].Bind(3);
 
 			Proj.SetUniform("MVP", Yee.GetMVP());
 			Proj.SetUniform("u_Model", glm::dmat4x4(1));
 			Proj.SetUniform("u_View", Yee.GetView());
 			Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
-			Proj.SetUniform("u_Camera_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{0.3, 0.15, -1.0, 1}));
+			Proj.SetUniform("u_Camera_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{0.5, 0.5, -0.5, 1}));
 			Proj.SetUniform("u_LightColor", {1, 1, 1});
 			Proj.SetUniform("u_UseBumpMap", UseBumpMap[i]);
+			Proj.SetUniform("u_UseDispMap", UseDispMap[i]);
 			glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(i), GL_UNSIGNED_INT, nullptr);
 		}
 
@@ -184,7 +192,7 @@ int main(int argc, char **argv)
 
 		SDL_GL_SwapWindow(window);
 
-		std::cout << "CameraPosition {x, y, z}: {" << Yee.GetPosition().x << ", " << Yee.GetPosition().y << ", " << Yee.GetPosition().z << "}\n";
+		//std::cout << "CameraPosition {x, y, z}: {" << Yee.GetPosition().x << ", " << Yee.GetPosition().y << ", " << Yee.GetPosition().z << "}\n";
 
 		LastTime = Now;
 	}

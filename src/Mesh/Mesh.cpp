@@ -22,11 +22,12 @@ bool operator==(const Index &lhs, const Index &rhs)
 	return lhs.normal_index == rhs.normal_index && lhs.texcoord_index == rhs.texcoord_index && lhs.vertex_index == rhs.vertex_index && lhs.Material == rhs.Material;
 }
 
-void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles, std::vector<std::string> &SpecularFiles, std::vector<std::string> &BumpFiles)
+void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles, std::vector<std::string> &SpecularFiles, std::vector<std::string> &BumpFiles, std::vector<std::string> &DispFiles)
 {
 	DiffuseFiles.clear();
 	SpecularFiles.clear();
 	BumpFiles.clear();
+	DispFiles.clear();
 
 	tinyobj::attrib_t MeshAttributes;
 	std::vector<tinyobj::shape_t> Shapes;
@@ -60,6 +61,8 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	std::vector<GLfloat> Shininess;
 	std::vector<std::vector<glm::vec3>> Tangents;
 	std::vector<GLfloat> TangentsAvaregedAndSplit;
+	std::vector<std::vector<glm::vec3>> BiTangents;
+	std::vector<GLfloat> BiTangentsAvaregedAndSplit;
 
 	glBindVertexArray(m_VertexArray);
 
@@ -68,11 +71,12 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	std::vector<std::vector<GLuint>> ExpandedIndexes;
 	std::vector<std::vector<Index>> StoredIndexes;
 
-	//this is needed for forcing materials to be per vertex
+	//this is needed for forcing materials to be per vertex, and tangents
 	for (size_t i = 0; i < Shapes.size(); i++)
 	{
 		StoredIndexes.emplace_back();
 		Tangents.emplace_back();
+		BiTangents.emplace_back();
 		for (size_t j = 0; j < Shapes[i].mesh.num_face_vertices.size(); j++)
 		{
 			StoredIndexes[i].emplace_back();
@@ -81,6 +85,9 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 			Tangents[i].emplace_back();
 			Tangents[i].emplace_back();
 			Tangents[i].emplace_back();
+			BiTangents[i].emplace_back();
+			BiTangents[i].emplace_back();
+			BiTangents[i].emplace_back();
 			StoredIndexes[i][j * 3].normal_index = Shapes[i].mesh.indices[j * 3].normal_index;
 			StoredIndexes[i][j * 3 + 1].normal_index = Shapes[i].mesh.indices[j * 3 + 1].normal_index;
 			StoredIndexes[i][j * 3 + 2].normal_index = Shapes[i].mesh.indices[j * 3 + 2].normal_index;
@@ -132,21 +139,31 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				uv2.x = MeshAttributes.texcoords[Index2.texcoord_index * 2];
 				uv2.y = MeshAttributes.texcoords[Index2.texcoord_index * 2 + 1];
 
+
 				glm::vec3 edge1 = pos1 - pos0;
 				glm::vec3 edge2 = pos2 - pos0;
 				glm::vec2 dUV1 = uv1 - uv0;
 				glm::vec2 dUV2 = uv2 - uv0;
 
-				glm::vec3 Result;
+				glm::vec3 Tangent, BiTangent;
 				float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
-				Result.x = f * (edge1.x * dUV2.y - edge2.x * dUV1.y);
-				Result.y = f * (edge1.y * dUV2.y - edge2.y * dUV1.y);
-				Result.z = f * (edge1.z * dUV2.y - edge2.z * dUV1.y);
-				Result = glm::normalize(Result);
+				Tangent.x = f * (edge1.x * dUV2.y - edge2.x * dUV1.y);
+				Tangent.y = f * (edge1.y * dUV2.y - edge2.y * dUV1.y);
+				Tangent.z = f * (edge1.z * dUV2.y - edge2.z * dUV1.y);
+				Tangent = glm::normalize(Tangent);
 
-				Tangents[i][j * 3] = Result;
-				Tangents[i][j * 3 + 1] = Result;
-				Tangents[i][j * 3 + 2] = Result;
+				BiTangent.x = f * (-dUV2.x * edge1.x + dUV1.x * edge2.x);
+				BiTangent.y = f * (-dUV2.x * edge1.y + dUV1.x * edge2.y);
+				BiTangent.z = f * (-dUV2.x * edge1.z + dUV1.x * edge2.z);
+				BiTangent = glm::normalize(BiTangent);
+
+				Tangents[i][j * 3] = Tangent;
+				Tangents[i][j * 3 + 1] = Tangent;
+				Tangents[i][j * 3 + 2] = Tangent;
+
+				BiTangents[i][j * 3] = BiTangent;
+				BiTangents[i][j * 3 + 1] = BiTangent;
+				BiTangents[i][j * 3 + 2] = BiTangent;
 			}
 		}
 	}
@@ -224,6 +241,10 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				TangentsAvaregedAndSplit.push_back(Tangents[i][j].y);
 				TangentsAvaregedAndSplit.push_back(Tangents[i][j].z);
 
+				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].x);
+				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].y);
+				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].z);
+
 				ExpandedIndexes[i].push_back((Positions.size() - 1) / 3);
 			}
 		}
@@ -236,6 +257,7 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 		DiffuseFiles.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].diffuse_texname);
 		SpecularFiles.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].specular_texname);
 		BumpFiles.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].bump_texname);
+		DispFiles.push_back(MeshMaterials[Shapes[i].mesh.material_ids[0]].displacement_texname);
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[0]);
@@ -265,6 +287,11 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	glBufferData(GL_ARRAY_BUFFER, TangentsAvaregedAndSplit.size() * sizeof(GLfloat), TangentsAvaregedAndSplit.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(4, 3, GL_FLOAT, false, 0, nullptr);
 	glEnableVertexAttribArray(4);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[5]);
+	glBufferData(GL_ARRAY_BUFFER, BiTangentsAvaregedAndSplit.size() * sizeof(GLfloat), BiTangentsAvaregedAndSplit.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(5, 3, GL_FLOAT, false, 0, nullptr);
+	glEnableVertexAttribArray(5);
 }
 
 bool MTLLoader::operator()(const std::string &matId,

@@ -5,6 +5,7 @@ layout(location = 1) in vec2 in_UV;
 layout(location = 2) in vec3 in_Model_Normal;
 layout(location = 3) in float in_Shininess;
 layout(location = 4) in vec3 in_Model_Tangent;
+layout(location = 5) in vec3 in_Model_BiTangent;
 
 out Material {
 	float Shininess;
@@ -12,14 +13,15 @@ out Material {
 
 out VertexInfo {
 	vec3 Tangent_ModelPosition;
-	out vec3 Tangent_Normal;
-	out vec3 Tangent_LightDirection;
+	vec3 Tangent_Normal;
+	vec3 Tangent_LightDirection;
 	float Tangent_LightDistance;
-	out vec2 UV;
-	out mat3 TBN;
-	out vec3 Normal;
-	out vec3 Tangent;
-	out vec3 BiTangent;
+	vec3 Tangent_CameraPosition;
+	vec2 UV;
+	mat3 TBN;
+	vec3 Normal;
+	vec3 Tangent;
+	vec3 BiTangent;
 } vertex;
 
 
@@ -32,15 +34,16 @@ void main(void) {
 
 	vec3 N = normalize(vec3(u_View * u_Model * vec4(in_Model_Normal, 0.0)));
 	vec3 T = normalize(vec3(u_View * u_Model * vec4(in_Model_Tangent, 0.0)));
+	vec3 B = normalize(vec3(u_View * u_Model * vec4(in_Model_BiTangent, 0.0)));
 
 	T = normalize(T - dot(T, N) * N);
+	B = normalize(B - dot(B, N) * N);
 
 
-	vec3 B = cross(N, T);
 
 	vertex.Normal = in_Model_Normal;
 	vertex.Tangent = in_Model_Tangent;
-	vertex.BiTangent = cross(in_Model_Normal, in_Model_Tangent);
+	vertex.BiTangent = in_Model_BiTangent;
 
 	mat3 TBN = transpose(mat3(T, B, N));
 	vertex.TBN = mat3(T, B, N);
@@ -57,6 +60,8 @@ void main(void) {
 	vertex.Tangent_LightDirection = TBN * normalize(vertex.Tangent_LightDirection);
 
 	vertex.Tangent_ModelPosition = TBN * (u_View * u_Model * vec4(in_Model_Position, 1)).xyz;
+
+	vertex.Tangent_CameraPosition = TBN * vec3(0, 0, 0);
 	//Normal = (u_View * u_Model * vec4(in_Normal, 0)).xyz;
 
 
