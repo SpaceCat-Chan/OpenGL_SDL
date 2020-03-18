@@ -17,8 +17,6 @@
 #include "TexturedMesh/TexturedMesh.hpp"
 #include "SDL-Helper-Libraries/KeyTracker/KeyTracker.hpp"
 
-#include "ECS/ECS.hpp"
-
 #include "Common.hpp"
 
 std::string get_file_contents(const char *filename)
@@ -72,16 +70,17 @@ int main(int argc, char **argv)
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
-	World GameWorld;
+	Shader Proj;
+	Proj.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
+	Proj.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
 
-	GameWorld.ShaderProgram.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
-	GameWorld.ShaderProgram.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
+	TexturedMesh Cube;
+	Cube.Load("res/cube.obj");
 
-	Meshes::TexturedMeshes.push_back(TexturedMesh("res/cube.obj"));
-
-	GameWorld.View.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
-	GameWorld.View.LookIn({0.5, 0.5, 0.5});
-	GameWorld.View.MoveTo({-1, -1, -1});
+	Camera Yee;
+	Yee.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
+	Yee.LookIn({0.5, 0.5, 0.5});
+	Yee.MoveTo({-1, -1, -1});
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -92,13 +91,9 @@ int main(int argc, char **argv)
 
 	auto LastTime = std::chrono::high_resolution_clock::now();
 
-	//SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	size_t Cube = GameWorld.NewEntity();
-
-	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
 
 	while (!Quit)
 	{
@@ -118,9 +113,9 @@ int main(int argc, char **argv)
 
 			case SDL_MOUSEMOTION:
 				constexpr double Sensitivity = 0.01;
-				glm::dvec3 CurrentDirection = GameWorld.View.GetViewVector();
+				glm::dvec3 CurrentDirection = Yee.GetViewVector();
 				glm::dmat4 Rotate = glm::rotate(glm::rotate(glm::dmat4x4(1), Event.motion.xrel * Sensitivity, glm::dvec3{0, 1, 0}), Event.motion.yrel * Sensitivity, glm::cross(CurrentDirection, glm::dvec3{0, 1, 0}));
-				GameWorld.View.LookIn(glm::dvec4{CurrentDirection, 0} * Rotate);
+				Yee.LookIn(glm::dvec4{CurrentDirection, 0} * Rotate);
 			}
 		}
 
@@ -131,11 +126,11 @@ int main(int argc, char **argv)
 
 		if (Keyboard[SDL_SCANCODE_W].Active)
 		{
-			GameWorld.View.Move((glm::normalize(GameWorld.View.GetViewVector())) * (1.0 * dt.count()));
+			Yee.Move((glm::normalize(Yee.GetViewVector())) * (1.0 * dt.count()));
 		}
 		if (Keyboard[SDL_SCANCODE_S].Active)
 		{
-			GameWorld.View.Move((glm::normalize(GameWorld.View.GetViewVector())) * (1.0 * -dt.count()));
+			Yee.Move((glm::normalize(Yee.GetViewVector())) * (1.0 * -dt.count()));
 		}
 
 		glClearColor(0, 0, 0, 1);
@@ -143,8 +138,17 @@ int main(int argc, char **argv)
 
 		///*
 
-		for(size_t i=0; i < GameWorld.Systems.size(); i++) {
-			GameWorld.Systems[i](GameWorld, dt);
+		for (size_t i = 0; i < Cube.GetMeshCount(); i++)
+		{
+			Cube.Bind(i, Proj);
+
+			Proj.SetUniform("MVP", Yee.GetMVP());
+			Proj.SetUniform("u_Model", glm::dmat4x4(1));
+			Proj.SetUniform("u_View", Yee.GetView());
+			Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
+			Proj.SetUniform("u_Camera_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{0.5, 0.5, -0.5, 1}));
+			Proj.SetUniform("u_LightColor", {1, 1, 1});
+			glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(i), GL_UNSIGNED_INT, nullptr);
 		}
 
 		/*

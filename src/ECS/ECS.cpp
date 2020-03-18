@@ -1,4 +1,8 @@
 #include "ECS.hpp"
+
+std::vector<Mesh> Meshes::StaticMeshes;
+std::vector<TexturedMesh> Meshes::TexturedMeshes;
+
 void Render(Mesh &mesh, size_t Index, Shader &ShaderProgram, Camera &View, bool OutsideLight = false, bool OutsideMesh = false, bool OutsideTextures = false)
 {
 	mesh.Bind(Index);
@@ -37,7 +41,7 @@ void Render(TexturedMesh &Mesh, Shader &ShaderProgram, Camera &View, bool Outsid
 {
 	for (size_t i = 0; i < Mesh.GetMeshCount(); i++)
 	{
-		Mesh.Bind(i);
+		Mesh.Bind(i, ShaderProgram);
 		Render(Mesh.m_Mesh, i, ShaderProgram, View, OutsideLight, OutsideMesh, true);
 	}
 }
@@ -54,7 +58,7 @@ void Render(Meshes &Mesh, Shader &ShaderProgram, Camera &View, bool OutsideLight
 	}
 }
 
-Error RenderSystem(World &GameWorld)
+Error RenderSystem(World &GameWorld, DSeconds dt)
 {
 	for (size_t i = 0; i < GameWorld.ComponentMask.size(); i++)
 	{
@@ -63,4 +67,5 @@ Error RenderSystem(World &GameWorld)
 			Render(GameWorld.MeshComponents[i], GameWorld.ShaderProgram, GameWorld.View);
 		}
 	}
+	return Error(Error::ErrorType::None);
 }

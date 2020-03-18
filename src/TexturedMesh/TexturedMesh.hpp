@@ -31,7 +31,7 @@ class TexturedMesh {
 	std::vector<Texture> m_Disp;
 	std::vector<bool> m_UsesDisp;
 
-	friend void Render(TexturedMesh &Mesh, Shader &ShaderProgram, Camera &View, bool OutsideLight = false, bool OutsideMesh = false);
+	friend void Render(TexturedMesh &Mesh, Shader &ShaderProgram, Camera &View, bool OutsideLight, bool OutsideMesh);
 
 	public:
 	TexturedMesh() = default;

@@ -19,8 +19,9 @@
  */
 class Mesh
 {
+	static constexpr size_t BufferAmount = 6;
 	GLuint m_VertexArray = 0;
-	GLuint m_VertexBuffer[6];
+	GLuint m_VertexBuffer[BufferAmount];
 	std::vector<GLuint> m_IndexBuffer;
 	std::vector<size_t> m_IndexAmount;
 
@@ -41,18 +42,47 @@ private:
 public:
 	Mesh()
 	{
-		glGenBuffers(6, m_VertexBuffer);
+		glGenBuffers(BufferAmount, m_VertexBuffer);
 		glGenVertexArrays(1, &m_VertexArray);
 	}
 	~Mesh()
 	{
-		glDeleteBuffers(6, m_VertexBuffer);
+		glDeleteBuffers(BufferAmount, m_VertexBuffer);
 		glDeleteVertexArrays(1, &m_VertexArray);
 
 		for (size_t i = 0; i < m_IndexBuffer.size(); i++)
 		{
 			glDeleteBuffers(1, &m_IndexBuffer[i]);
 		}
+	}
+
+	Mesh(const Mesh&) = delete;
+	Mesh(Mesh&& Move)
+	{
+		m_VertexArray = Move.m_VertexArray;
+		Move.m_VertexArray = 0;
+		for(size_t i = 0; i < BufferAmount; ++i)
+		{
+			m_VertexBuffer[i] = Move.m_VertexBuffer[i];
+			Move.m_VertexBuffer[i] = 0;
+		}
+		m_IndexBuffer = std::move(Move.m_IndexBuffer);
+		m_IndexAmount = std::move(Move.m_IndexAmount);
+	}
+	Mesh& operator=(const Mesh&) = delete;
+	Mesh& operator=(Mesh&& Move)
+	{
+		m_VertexArray = Move.m_VertexArray;
+		Move.m_VertexArray = 0;
+		for(size_t i = 0; i < BufferAmount; ++i)
+		{
+			m_VertexBuffer[i] = Move.m_VertexBuffer[i];
+			Move.m_VertexBuffer[i] = 0;
+		}
+		m_IndexBuffer = std::move(Move.m_IndexBuffer);
+		m_IndexAmount = std::move(Move.m_IndexAmount);
+
+		return *this;
 	}
 
 	/**

@@ -10,6 +10,8 @@
 #include "TexturedMesh/TexturedMesh.hpp"
 #include "Camera/Camera.hpp"
 
+#include "Common.hpp"
+
 struct Error {
 	enum class ErrorType {
 		None, Warning, NonFatal, Fatal
@@ -34,9 +36,24 @@ struct Meshes {
 
 	MeshType Type=MeshType::None;
 	size_t MeshIndex=0;
+
+	Meshes() = default;
+	Meshes(const Meshes&) = default;
+	Meshes(Meshes&&) = default;
+	Meshes(MeshType _Type, size_t _Index)
+	{
+		Type = _Type;
+		MeshIndex = _Index;
+	}
+	~Meshes() = default;
+
+	constexpr Meshes& operator=(const Meshes&) = default;
+	constexpr Meshes& operator=(Meshes&&) = default;
 };
 
-Error RenderSystem(World& GameWorld);
+struct World;
+
+Error RenderSystem(World& GameWorld, DSeconds dt);
 
 /**
  * \brief a class that handles the entire gameworld
@@ -54,7 +71,7 @@ struct World {
 	std::vector<glm::dvec3> PositionComponents;
 	std::vector<Meshes> MeshComponents;
 
-	std::vector<std::function<Error(World&)>> Systems{RenderSystem};
+	std::vector<std::function<Error(World&, DSeconds)>> Systems{RenderSystem};
 
 	Shader ShaderProgram;
 	Camera View;
@@ -69,13 +86,13 @@ struct World {
 };
 
 template<size_t Component, typename... Args>
-std::enable_if<Component == World::Components::Position, void> AvtivateComponent(size_t ID, World& World, Args&&... args) {
-	World.ComponentMask[Component] = true;
-	World.PositionComponents[ID] = glm::dvec3(std::forward<Args>(args)...)
+std::enable_if_t<Component == World::Components::Position, void> ActivateComponent(size_t ID, World& World, Args&&... args) {
+	World.ComponentMask[ID][World::Position] = true;
+	World.PositionComponents[ID] = glm::dvec3(std::forward<Args>(args)...);
 }
 
 template<size_t Component, typename... Args>
-std::enable_if<Component == World::Components::Mesh, void> AvtivateComponent(size_t ID, World& World, Args&&... args) {
-	World.ComponentMask[Component] = true;
-	World.MeshComponents[ID] = Meshes(std::forward<Args>(args)...)
+std::enable_if_t<Component == World::Components::Mesh, void> ActivateComponent(size_t ID, World& World, Args&&... args) {
+	World.ComponentMask[ID][World::Mesh] = true;
+	World.MeshComponents[ID] = Meshes(std::forward<Args>(args)...);
 }

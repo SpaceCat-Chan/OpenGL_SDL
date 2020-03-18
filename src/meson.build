@@ -2,6 +2,7 @@
 
 sources = [
     'main.cpp',
+    'ECS/ECS.cpp',
     'Window/Window.cpp',
     'Camera/Camera.cpp',
     'Mesh/Mesh.cpp',
