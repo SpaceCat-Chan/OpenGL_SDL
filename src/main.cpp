@@ -14,6 +14,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Shader/Shader.hpp"
 #include "Texture/Texture.hpp"
+#include "TexturedMesh/TexturedMesh.hpp"
 #include "SDL-Helper-Libraries/KeyTracker/KeyTracker.hpp"
 
 #include "Common.hpp"
@@ -73,32 +74,8 @@ int main(int argc, char **argv)
 	Proj.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
 	Proj.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
 
-	std::vector<Texture> DiffuseTextures;
-	std::vector<Texture> SpecularTextures;
-	std::vector<Texture> BumpTextures;
-	std::vector<bool> UseBumpMap;
-	std::vector<Texture>  DispTextures;
-	std::vector<bool> UseDispMap;
-	Mesh Cube;
-	{
-		std::vector<std::string> DiffuseFiles;
-		std::vector<std::string> SpecularFiles;
-		std::vector<std::string> BumpFiles;
-		std::vector<std::string> DispFiles;
-
-		Cube.LoadMesh("res/cube.obj", DiffuseFiles, SpecularFiles, BumpFiles, DispFiles);
-
-		for (size_t i = 0; i < DiffuseFiles.size(); ++i)
-		{
-			DiffuseTextures.push_back(Texture(DiffuseFiles[i]));
-			SpecularTextures.push_back(Texture(SpecularFiles[i]));
-			std::cout << "i: " << i << "\nSpecMap: " << SpecularFiles[i] << '\n';
-			BumpTextures.push_back(Texture(BumpFiles[i]));
-			UseBumpMap.push_back(BumpFiles[i] != "");
-			DispTextures.push_back(Texture(DispFiles[i]));
-			UseDispMap.push_back(DispFiles[i] != "");
-		}
-	}
+	TexturedMesh Cube;
+	Cube.Load("res/cube.obj");
 
 	Camera Yee;
 	Yee.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
@@ -161,19 +138,9 @@ int main(int argc, char **argv)
 
 		///*
 
-		for (size_t i = 0; i < DiffuseTextures.size(); i++)
+		for (size_t i = 0; i < Cube.GetMeshCount(); i++)
 		{
-			Cube.Bind(i);
-
-			Proj.SetUniform("u_Texture", 0);
-			Proj.SetUniform("u_Specular", 1);
-			Proj.SetUniform("u_Bump", 2);
-			Proj.SetUniform("u_Disp", 3);
-
-			DiffuseTextures[i].Bind(0);
-			SpecularTextures[i].Bind(1);
-			BumpTextures[i].Bind(2);
-			DispTextures[i].Bind(3);
+			Cube.Bind(i, Proj);
 
 			Proj.SetUniform("MVP", Yee.GetMVP());
 			Proj.SetUniform("u_Model", glm::dmat4x4(1));
@@ -181,8 +148,6 @@ int main(int argc, char **argv)
 			Proj.SetUniform("u_Color", glm::dvec3{1, 1, 1});
 			Proj.SetUniform("u_Camera_LightPosition", glm::dvec3(Yee.GetView() * glm::dvec4{0.5, 0.5, -0.5, 1}));
 			Proj.SetUniform("u_LightColor", {1, 1, 1});
-			Proj.SetUniform("u_UseBumpMap", UseBumpMap[i]);
-			Proj.SetUniform("u_UseDispMap", UseDispMap[i]);
 			glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(i), GL_UNSIGNED_INT, nullptr);
 		}
 

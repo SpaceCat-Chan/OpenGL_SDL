@@ -7,6 +7,7 @@ sources = [
     'Mesh/Mesh.cpp',
     'Shader/Shader.cpp',
     'Texture/Texture.cpp',
+    'TexturedMesh/TexturedMesh.cpp',
     '../SDL-Helper-Libraries/KeyTracker/KeyTracker.cpp',
     '../SDL-Helper-Libraries/sfstream/sfstream.cpp'
 ]

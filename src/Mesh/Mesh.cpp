@@ -139,7 +139,6 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				uv2.x = MeshAttributes.texcoords[Index2.texcoord_index * 2];
 				uv2.y = MeshAttributes.texcoords[Index2.texcoord_index * 2 + 1];
 
-
 				glm::vec3 edge1 = pos1 - pos0;
 				glm::vec3 edge2 = pos2 - pos0;
 				glm::vec2 dUV1 = uv1 - uv0;
@@ -292,6 +291,52 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	glBufferData(GL_ARRAY_BUFFER, BiTangentsAvaregedAndSplit.size() * sizeof(GLfloat), BiTangentsAvaregedAndSplit.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(5, 3, GL_FLOAT, false, 0, nullptr);
 	glEnableVertexAttribArray(5);
+
+	MostExtremeVertexes.clear();
+	for (size_t i = 0; i < MeshAttributes.vertices.size(); i += 3)
+	{
+		glm::vec3 Vertex = {MeshAttributes.vertices[i * 3],
+							MeshAttributes.vertices[i * 3 + 1],
+							MeshAttributes.vertices[i * 3 + 2]};
+		if (i == 0)
+		{
+			MostExtremeVertexes[Side::PosY] = Vertex;
+			MostExtremeVertexes[Side::NegY] = Vertex;
+			MostExtremeVertexes[Side::PosZ] = Vertex;
+			MostExtremeVertexes[Side::NegZ] = Vertex;
+			MostExtremeVertexes[Side::PosX] = Vertex;
+			MostExtremeVertexes[Side::NegX] = Vertex;
+			continue;
+		}
+
+		if(MostExtremeVertexes[Side::PosY].y < Vertex.y) {
+			MostExtremeVertexes[Side::PosY] = Vertex;
+		}
+
+		if(MostExtremeVertexes[Side::NegY].y > Vertex.y) {
+			MostExtremeVertexes[Side::NegY] = Vertex;
+		}
+
+		if(MostExtremeVertexes[Side::PosZ].z < Vertex.z) {
+			MostExtremeVertexes[Side::PosZ] = Vertex;
+		}
+
+		if(MostExtremeVertexes[Side::NegZ].z > Vertex.z) {
+			MostExtremeVertexes[Side::NegZ] = Vertex;
+		}
+
+		if(MostExtremeVertexes[Side::PosX].x < Vertex.x) {
+			MostExtremeVertexes[Side::PosX] = Vertex;
+		}
+
+		if(MostExtremeVertexes[Side::NegX].x > Vertex.x) {
+			MostExtremeVertexes[Side::NegX] = Vertex;
+		}
+	}
+}
+
+glm::vec3 Mesh::GetMostExtremeVertex(Side VertexSide) {
+	return MostExtremeVertexes[VertexSide];
 }
 
 bool MTLLoader::operator()(const std::string &matId,

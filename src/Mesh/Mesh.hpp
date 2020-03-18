@@ -12,9 +12,6 @@
 
 #include "tiny_obj_loader.h"
 
-
-
-
 /**
  * \brief Class for loading and handeling meshes
  * 
@@ -27,7 +24,19 @@ class Mesh
 	std::vector<GLuint> m_IndexBuffer;
 	std::vector<size_t> m_IndexAmount;
 
+public:
+	enum class Side
+	{
+		NegY,
+		PosY,
+		NegZ,
+		PosZ,
+		NegX,
+		PosX
+	};
 
+private:
+	std::map<Side, glm::vec3> MostExtremeVertexes;
 
 public:
 	Mesh()
@@ -40,7 +49,8 @@ public:
 		glDeleteBuffers(6, m_VertexBuffer);
 		glDeleteVertexArrays(1, &m_VertexArray);
 
-		for(size_t i=0; i<m_IndexBuffer.size(); i++) {
+		for (size_t i = 0; i < m_IndexBuffer.size(); i++)
+		{
 			glDeleteBuffers(1, &m_IndexBuffer[i]);
 		}
 	}
@@ -77,4 +87,15 @@ public:
 	 * \return the amount of vertexes
 	 */
 	size_t GetIndexCount(size_t MeshIndex) { return m_IndexAmount[MeshIndex]; }
+
+	size_t GetMeshCount() { return m_IndexBuffer.size(); }
+
+	/**
+	 * \brief gets the vertex most in the direction specified
+	 * 
+	 * \param VertexSide the side of the vertex to check for
+	 * 
+	 * \return the vertex that is most in the direction specified, different sides may have the same vertex
+	 */
+	glm::vec3 GetMostExtremeVertex(Side VertexSide);
 };
