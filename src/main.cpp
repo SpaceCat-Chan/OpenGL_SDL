@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
 	auto LastTime = std::chrono::high_resolution_clock::now();
 
-	//SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

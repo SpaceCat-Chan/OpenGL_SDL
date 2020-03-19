@@ -12,7 +12,7 @@ void Render(Mesh &mesh, size_t Index, Shader &ShaderProgram, Camera &View, bool 
 	if (!OutsideMesh)
 	{
 		ShaderProgram.SetUniform("u_Model", glm::mat4(1));
-		ShaderProgram.SetUniform("u_Color", glm::dvec3(0, 0, 0));
+		ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
 	}
 	if (!OutsideLight)
 	{
@@ -64,7 +64,9 @@ Error RenderSystem(World &GameWorld, DSeconds dt)
 	{
 		if (GameWorld.ComponentMask[i][World::Components::Mesh])
 		{
-			Render(GameWorld.MeshComponents[i], GameWorld.ShaderProgram, GameWorld.View);
+			GameWorld.ShaderProgram.SetUniform("u_Camera_LightPosition", glm::dvec3(GameWorld.View.GetView() * glm::dvec4{0.5, 0.5, -0.5, 1}));
+			GameWorld.ShaderProgram.SetUniform("u_LightColor", {1, 1, 1});
+			Render(GameWorld.MeshComponents[i], GameWorld.ShaderProgram, GameWorld.View, true);
 		}
 	}
 	return Error(Error::ErrorType::None);
