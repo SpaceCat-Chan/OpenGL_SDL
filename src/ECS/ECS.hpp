@@ -3,6 +3,7 @@
 #include <vector>
 #include <bitset>
 #include <functional>
+#include <queue>
 
 #include <glm/ext.hpp>
 
@@ -176,8 +177,6 @@ struct LightInfo
 
 /**
  * \brief the component containing information about how to transform from Model space to View space
- * 
- * the rendering system assumes that Type::Rotate and Type::Mix don't majorly change the position of things
  */
 struct Transform
 {
@@ -337,18 +336,36 @@ struct World
 	Shader ShaderProgram;
 	Camera View;
 
+
+	std::queue<size_t> UnusedIDs;
+
 	/**
 	 * \brief Creates and return a new Entity ID
 	 */
 	size_t NewEntity()
 	{
-		ComponentMask.push_back(std::bitset<ComponentAmount>());
+		if(UnusedIDs.empty() == false)
+		{
+			size_t Result = UnusedIDs.front();
+			UnusedIDs.pop();
+			return Result;
+		}
+		else
+		{
+			ComponentMask.push_back(std::bitset<ComponentAmount>());
 
-		PositionComponents.push_back({0, 0, 0});
-		MeshComponents.push_back({});
-		LightComponents.push_back(LightInfo());
-		TransformComponents.push_back(::Transform());
-		return PositionComponents.size() - 1;
+			PositionComponents.push_back({0, 0, 0});
+			MeshComponents.push_back({});
+			LightComponents.push_back(LightInfo());
+			TransformComponents.push_back(::Transform());
+			return PositionComponents.size() - 1;
+		}
+	}
+
+	void DeleteEntity(size_t ID)
+	{
+		ComponentMask[ID].reset();
+		UnusedIDs.push(ID);
 	}
 };
 

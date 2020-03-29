@@ -76,14 +76,86 @@ void ExpandArea(glm::dvec3 Min, glm::dvec3 Max, double Amount = sqrt2)
 	Max = Mid - ((Mid + Amount) * Amount);
 }
 
+template <class MeshType>
+std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, TexturedMesh>::value, void> CalculateTransformedMinMax(MeshType &Mesh, Transform Transformation, glm::vec3 &ResultMin, glm::vec3 &ResultMax)
+{
+	std::array<glm::vec3, 6> VertexExtremes;
+	glm::mat4x4 FullMatrix = Transformation.CalculateFull();
+
+	VertexExtremes[0] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegX), 1);
+	VertexExtremes[1] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegY), 1);
+	VertexExtremes[2] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegZ), 1);
+	VertexExtremes[4] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosY), 1);
+	VertexExtremes[5] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosZ), 1);
+	VertexExtremes[3] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosX), 1);
+
+	ResultMin = {
+		VertexExtremes[0].x,
+		VertexExtremes[1].y,
+		VertexExtremes[2].z};
+
+	ResultMax = {
+		VertexExtremes[3].x,
+		VertexExtremes[4].y,
+		VertexExtremes[5].z};
+
+	if (Transformation.ContainsRotations())
+	{
+		//rotation may change which side the extremes belong to
+		for (auto &Vertex : VertexExtremes)
+		{
+			if (Vertex.x < ResultMin.x)
+			{
+				ResultMin.x = Vertex.x;
+			}
+			if (Vertex.y < ResultMin.y)
+			{
+				ResultMin.y = Vertex.y;
+			}
+			if (Vertex.z < ResultMin.z)
+			{
+				ResultMin.z = Vertex.z;
+			}
+
+			if (Vertex.x > ResultMax.x)
+			{
+				ResultMax.x = Vertex.x;
+			}
+			if (Vertex.y > ResultMax.y)
+			{
+				ResultMax.y = Vertex.y;
+			}
+			if (Vertex.z > ResultMax.z)
+			{
+				ResultMax.z = Vertex.z;
+			}
+		}
+
+		ExpandArea(ResultMin, ResultMax);
+	}
+}
+
+template <class MeshType>
+std::enable_if_t<std::is_same<MeshType, Meshes>::value, void> CalculateTransformedMinMax(MeshType Mesh, Transform Transformation, glm::vec3 &ResultMin, glm::vec3 &ResultMax)
+{
+	if (Mesh.Type == Meshes::MeshType::Static)
+	{
+		CalculateTransformedMinMax(Meshes::StaticMeshes[Mesh.MeshIndex], Transformation, ResultMin, ResultMax);
+	}
+	else
+	{
+		CalculateTransformedMinMax(Meshes::TexturedMeshes[Mesh.MeshIndex], Transformation, ResultMin, ResultMax);
+	}
+}
+
 // ForceMainShader is there for future use
 void Render(World &GameWorld, bool ForceMainShader = false)
 {
-	for (size_t i = 0; i < GameWorld.ComponentMask.size(); i++)
+	for (size_t MeshIndex = 0; MeshIndex < GameWorld.ComponentMask.size(); MeshIndex++)
 	{
-		if (GameWorld.ComponentMask[i][World::Components::Mesh])
+		if (GameWorld.ComponentMask[MeshIndex][World::Components::Mesh])
 		{
-			if (GameWorld.MeshComponents[i].Type == Meshes::MeshType::None)
+			if (GameWorld.MeshComponents[MeshIndex].Type == Meshes::MeshType::None)
 			{
 				continue;
 			}
@@ -92,13 +164,13 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			std::vector<glm::vec3> LightPositions;
 			std::vector<glm::vec3> LightColors;
 
-			for (size_t j = 0; j < GameWorld.ComponentMask.size() && LightPositions.size() < MaxLightAmount; j++)
+			for (size_t LightIndex = 0; LightIndex < GameWorld.ComponentMask.size() && LightPositions.size() < MaxLightAmount; LightIndex++)
 			{
-				if (GameWorld.ComponentMask[j][World::Components::Light] == false)
+				if (GameWorld.ComponentMask[LightIndex][World::Components::Light] == false)
 				{
 					continue;
 				}
-				auto &Light = GameWorld.LightComponents[j];
+				auto &Light = GameWorld.LightComponents[LightIndex];
 				if (Light.LightType == LightInfo::Type::Direction)
 				{
 					//not implemented
@@ -106,93 +178,23 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 				else
 				{
 					glm::vec3 Min, Max;
-					if (GameWorld.MeshComponents[i].Type == Meshes::MeshType::Static)
+					CalculateTransformedMinMax(GameWorld.MeshComponents[MeshIndex], GameWorld.TransformComponents[MeshIndex], Min, Max);
+					glm::vec3 LightPosition = Light.Position;
+					if (GameWorld.ComponentMask[LightIndex][World::Transform])
 					{
-						auto &Mesh = Meshes::StaticMeshes[GameWorld.MeshComponents[i].MeshIndex];
-						glm::vec3 LightPosition = Light.Position;
-						Min = {
-							Mesh.GetMostExtremeVertex(Mesh::Side::NegX).x,
-							Mesh.GetMostExtremeVertex(Mesh::Side::NegY).y,
-							Mesh.GetMostExtremeVertex(Mesh::Side::NegZ).z};
-						Max = {
-							Mesh.GetMostExtremeVertex(Mesh::Side::PosX).x,
-							Mesh.GetMostExtremeVertex(Mesh::Side::PosY).y,
-							Mesh.GetMostExtremeVertex(Mesh::Side::PosZ).z};
-
-						if (GameWorld.ComponentMask[i][World::Transform])
+						auto &Transform = GameWorld.TransformComponents[LightIndex];
+						if (Transform.PositionSpace == Transform::Space::Model)
 						{
-							auto &Transform = GameWorld.TransformComponents[i];
-							if (Transform.PositionSpace == Transform::Space::Model)
-							{
-								Min = Transform(glm::vec4(Min, 1), false);
-								Max = Transform(glm::vec4(Max, 1), false);
-
-								if (Transform.ContainsRotations())
-								{
-									ExpandArea(Min, Max);
-								}
-							}
-						}
-						if (GameWorld.ComponentMask[j][World::Transform])
-						{
-							auto &Transform = GameWorld.TransformComponents[j];
-							if (Transform.PositionSpace == Transform::Space::Model)
-							{
-								LightPosition = Transform(glm::dvec4(LightPosition, 1));
-							}
-						}
-						glm::vec3 Position = glm::clamp(glm::vec3(LightPosition), Min, Max);
-
-						bool WithinRange = glm::pow(Light.CutoffDistance, 2) > glm::pow(Position.x, 2) + glm::pow(Position.y, 2) + glm::pow(Position.z, 2);
-						if (WithinRange)
-						{
-							LightPositions.push_back(LightPosition);
-							LightColors.push_back(Light.Color);
+							LightPosition = Transform(glm::dvec4(LightPosition, 1));
 						}
 					}
-					else
+					glm::vec3 Position = glm::clamp(glm::vec3(LightPosition), Min, Max);
+
+					bool WithinRange = glm::pow(Light.CutoffDistance, 2) > glm::pow(Position.x, 2) + glm::pow(Position.y, 2) + glm::pow(Position.z, 2);
+					if (WithinRange)
 					{
-						auto &Mesh = Meshes::TexturedMeshes[GameWorld.MeshComponents[i].MeshIndex];
-						glm::vec3 LightPosition = Light.Position;
-						Min = {
-							Mesh.GetMostExtremeVertex(Mesh::Side::NegX).x,
-							Mesh.GetMostExtremeVertex(Mesh::Side::NegY).y,
-							Mesh.GetMostExtremeVertex(Mesh::Side::NegZ).z};
-						Max = {
-							Mesh.GetMostExtremeVertex(Mesh::Side::PosX).x,
-							Mesh.GetMostExtremeVertex(Mesh::Side::PosY).y,
-							Mesh.GetMostExtremeVertex(Mesh::Side::PosZ).z};
-
-						if (GameWorld.ComponentMask[i][World::Transform])
-						{
-							auto &Transform = GameWorld.TransformComponents[i];
-							if (Transform.PositionSpace == Transform::Space::Model)
-							{
-								Min = Transform(glm::vec4(Min, 1), false);
-								Max = Transform(glm::vec4(Max, 1), false);
-
-								if (Transform.ContainsRotations())
-								{
-									ExpandArea(Min, Max);
-								}
-							}
-						}
-						if (GameWorld.ComponentMask[j][World::Transform])
-						{
-							auto &Transform = GameWorld.TransformComponents[j];
-							if (Transform.PositionSpace == Transform::Space::Model)
-							{
-								LightPosition = Transform(glm::dvec4(LightPosition, 1));
-							}
-						}
-						glm::vec3 Position = glm::clamp(glm::vec3(LightPosition), Min, Max);
-
-						bool WithinRange = glm::pow(Light.CutoffDistance, 2) > glm::pow(Position.x, 2) + glm::pow(Position.y, 2) + glm::pow(Position.z, 2);
-						if (WithinRange)
-						{
-							LightPositions.push_back(LightPosition);
-							LightColors.push_back(Light.Color);
-						}
+						LightPositions.push_back(LightPosition);
+						LightColors.push_back(Light.Color);
 					}
 				}
 			}
@@ -206,16 +208,16 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			GameWorld.ShaderProgram.SetUniform("u_LightColor", LightColors);
 			GameWorld.ShaderProgram.SetUniform("u_AmountOfLights", (GLuint)LightPositions.size());
 
-			if(GameWorld.ComponentMask[i][World::Transform])
+			if (GameWorld.ComponentMask[MeshIndex][World::Transform])
 			{
-				GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * (glm::dmat4x4)GameWorld.TransformComponents[i].CalculateFull());
-				GameWorld.ShaderProgram.SetUniform("u_Model", GameWorld.TransformComponents[i].CalculateFull());
+				GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * (glm::dmat4x4)GameWorld.TransformComponents[MeshIndex].CalculateFull());
+				GameWorld.ShaderProgram.SetUniform("u_Model", GameWorld.TransformComponents[MeshIndex].CalculateFull());
 				GameWorld.ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
-				Render(GameWorld.MeshComponents[i], GameWorld.ShaderProgram, GameWorld.View, true, true);
+				Render(GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true, true);
 			}
 			else
 			{
-				Render(GameWorld.MeshComponents[i], GameWorld.ShaderProgram, GameWorld.View, true);
+				Render(GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true);
 			}
 		}
 	}

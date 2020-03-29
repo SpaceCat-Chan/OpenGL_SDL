@@ -163,7 +163,10 @@ int main(int argc, char **argv)
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		GameWorld.PositionComponents[Cube] += glm::vec3{0.05, 0, 0} * (float)dt.count();
+		if(Keyboard[SDL_SCANCODE_E].Active)
+		{
+			GameWorld.PositionComponents[Cube] += glm::vec3{0.05, 0, 0} * (float)dt.count();
+		}
 
 		for(size_t i=0; i < GameWorld.Systems.size(); i++) {
 			GameWorld.Systems[i](GameWorld, dt);
