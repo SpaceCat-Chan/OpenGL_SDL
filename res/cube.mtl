@@ -1,9 +1,4 @@
-newmtl Ya
-map_Kd res/container.png
-map_Ks res/container_specular.png
-Ns 1024.0
-
-newmtl shinyred
+newmtl container
 map_Kd res/container.png
 map_Ks res/container_specular.png
 Ns 100.2237

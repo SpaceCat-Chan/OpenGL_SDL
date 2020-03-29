@@ -8,6 +8,8 @@
 #include <GL/glew.h>
 #include <SDL_opengl.h>
 #include <glm/ext.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 #include "Window/Window.hpp"
 #include "Camera/Camera.hpp"
@@ -76,6 +78,7 @@ int main(int argc, char **argv)
 
 	GameWorld.ShaderProgram.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
 	GameWorld.ShaderProgram.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
+	GameWorld.ShaderProgram.Link();
 
 	Meshes::TexturedMeshes.push_back(TexturedMesh("res/cube.obj"));
 
@@ -97,8 +100,27 @@ int main(int argc, char **argv)
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	size_t Cube = GameWorld.NewEntity();
-
 	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
+
+	Cube = GameWorld.NewEntity();
+	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
+	ActivateComponent<World::Position>(Cube, GameWorld, 0, 0, 0);
+	ActivateComponent<World::Transform>(Cube, GameWorld);
+	ActivateComponent<World::Light>(Cube, GameWorld);
+	GameWorld.TransformComponents[Cube].Tranformations.push_back({Transform::Type::AutoPosition, glm::mat4x4(1)});
+	GameWorld.LightComponents[Cube].LightType = LightInfo::Type::Point;
+	GameWorld.LightComponents[Cube].Position = {0, 0.3, -1};
+
+
+	size_t Light = GameWorld.NewEntity();
+	ActivateComponent<World::Light>(Light, GameWorld);
+	GameWorld.LightComponents[Light].LightType = LightInfo::Type::Point;
+	GameWorld.LightComponents[Light].Position = {0, 0.3, -1};
+
+	Light = GameWorld.NewEntity();
+	ActivateComponent<World::Light>(Light, GameWorld);
+	GameWorld.LightComponents[Light].LightType = LightInfo::Type::Point;
+	GameWorld.LightComponents[Light].Position = {0.5, 1.5, 0.5};
 
 	while (!Quit)
 	{
@@ -141,19 +163,15 @@ int main(int argc, char **argv)
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		///*
+		GameWorld.PositionComponents[Cube] += glm::vec3{0.05, 0, 0} * (float)dt.count();
 
 		for(size_t i=0; i < GameWorld.Systems.size(); i++) {
 			GameWorld.Systems[i](GameWorld, dt);
 		}
 
-		/*
-		Cube.Bind(1);
-		glDrawElements(GL_TRIANGLES, Cube.GetIndexCount(1), GL_UNSIGNED_INT, nullptr); //*/
-
 		SDL_GL_SwapWindow(window);
 
-		//std::cout << "CameraPosition {x, y, z}: {" << Yee.GetPosition().x << ", " << Yee.GetPosition().y << ", " << Yee.GetPosition().z << "}\n";
+		//std::cout << "CameraPosition {x, y, z}: {" << GameWorld.View.GetPosition().x << ", " << GameWorld.View.GetPosition().y << ", " << GameWorld.View.GetPosition().z << "}\n";
 
 		LastTime = Now;
 	}

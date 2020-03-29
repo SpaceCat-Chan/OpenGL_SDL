@@ -1,4 +1,5 @@
 #version 430 core
+#define MaxLightAmount 8
 
 layout(location = 0) in vec3 in_Model_Position;
 layout(location = 1) in vec2 in_UV;
@@ -14,8 +15,8 @@ out Material {
 out VertexInfo {
 	vec3 Tangent_ModelPosition;
 	vec3 Tangent_Normal;
-	vec3 Tangent_LightDirection;
-	float Tangent_LightDistance;
+	vec3 Tangent_LightDirection[MaxLightAmount];
+	float Tangent_LightDistance[MaxLightAmount];
 	vec3 Tangent_CameraPosition;
 	vec2 UV;
 	mat3 TBN;
@@ -28,7 +29,10 @@ out VertexInfo {
 uniform mat4 MVP;
 uniform mat4 u_Model;
 uniform mat4 u_View;
-uniform vec3 u_Camera_LightPosition;
+
+
+uniform uint u_AmountOfLights;
+uniform vec3 u_Camera_LightPosition[MaxLightAmount];
 
 void main(void) {
 
@@ -55,9 +59,11 @@ void main(void) {
 
 	vertex.Tangent_Normal = normalize(TBN * vec3(u_View * u_Model * vec4(in_Model_Normal, 0)));
 
-	vertex.Tangent_LightDirection = u_Camera_LightPosition - vec3(u_View * u_Model * vec4(in_Model_Position, 1));
-	vertex.Tangent_LightDistance = length(vertex.Tangent_LightDirection);
-	vertex.Tangent_LightDirection = TBN * normalize(vertex.Tangent_LightDirection);
+	for(int i=0; i < u_AmountOfLights; i++) {
+		vertex.Tangent_LightDirection[i] = u_Camera_LightPosition[i] - vec3(u_View * u_Model * vec4(in_Model_Position, 1));
+		vertex.Tangent_LightDistance[i] = length(vertex.Tangent_LightDirection[i]);
+		vertex.Tangent_LightDirection[i] = TBN * normalize(vertex.Tangent_LightDirection[i]);
+	}
 
 	vertex.Tangent_ModelPosition = TBN * (u_View * u_Model * vec4(in_Model_Position, 1)).xyz;
 
