@@ -4,6 +4,7 @@
 #include <bitset>
 #include <functional>
 #include <queue>
+#include <memory>
 
 #include <glm/ext.hpp>
 
@@ -60,7 +61,6 @@ struct Meshes
 
 	enum class MeshType
 	{
-		None,
 		Static,
 		Textured
 	};
@@ -68,7 +68,7 @@ struct Meshes
 	/**
 	 * \brief the type of mesh being stored
 	 */
-	MeshType Type = MeshType::None;
+	MeshType Type = MeshType::Static;
 	/**
 	 * \brief the index in either StaticMeshes or TexturedMeshes
 	 * 
@@ -324,12 +324,10 @@ struct World
 
 	static constexpr size_t ComponentAmount = 4;
 
-	std::vector<std::bitset<ComponentAmount>> ComponentMask;
-
-	std::vector<glm::dvec3> PositionComponents;
-	std::vector<Meshes> MeshComponents;
-	std::vector<LightInfo> LightComponents;
-	std::vector<::Transform> TransformComponents;
+	std::vector<std::shared_ptr<glm::dvec3>> PositionComponents;
+	std::vector<std::shared_ptr<Meshes>> MeshComponents;
+	std::vector<std::shared_ptr<LightInfo>> LightComponents;
+	std::vector<std::shared_ptr<::Transform>> TransformComponents;
 
 	std::vector<std::function<Error(World &, DSeconds)>> Systems{AutoPositionSystem, RenderSystem};
 
@@ -352,19 +350,20 @@ struct World
 		}
 		else
 		{
-			ComponentMask.push_back(std::bitset<ComponentAmount>());
-
-			PositionComponents.push_back({0, 0, 0});
-			MeshComponents.push_back({});
-			LightComponents.push_back(LightInfo());
-			TransformComponents.push_back(::Transform());
+			PositionComponents.emplace_back(nullptr);
+			MeshComponents.emplace_back(nullptr);
+			LightComponents.emplace_back(nullptr);
+			TransformComponents.emplace_back(nullptr);
 			return PositionComponents.size() - 1;
 		}
 	}
 
 	void DeleteEntity(size_t ID)
 	{
-		ComponentMask[ID].reset();
+		PositionComponents[ID] = nullptr;
+		MeshComponents[ID] = nullptr;
+		LightComponents[ID] = nullptr;
+		TransformComponents[ID] = nullptr;
 		UnusedIDs.push(ID);
 	}
 };
@@ -372,27 +371,23 @@ struct World
 template <size_t Component, typename... Args>
 std::enable_if_t<Component == World::Position, void> ActivateComponent(size_t ID, World &World, Args &&... args)
 {
-	World.ComponentMask[ID][World::Position] = true;
-	World.PositionComponents[ID] = glm::dvec3(std::forward<Args>(args)...);
+	World.PositionComponents[ID] = std::make_shared<glm::dvec3>(std::forward<Args>(args)...);
 }
 
 template <size_t Component, typename... Args>
 std::enable_if_t<Component == World::Mesh, void> ActivateComponent(size_t ID, World &World, Args &&... args)
 {
-	World.ComponentMask[ID][World::Mesh] = true;
-	World.MeshComponents[ID] = Meshes(std::forward<Args>(args)...);
+	World.MeshComponents[ID] = std::make_shared<Meshes>(std::forward<Args>(args)...);
 }
 
 template <size_t Component, typename... Args>
 std::enable_if_t<Component == World::Light, void> ActivateComponent(size_t ID, World &World, Args &&... args)
 {
-	World.ComponentMask[ID][World::Light] = true;
-	World.LightComponents[ID] = LightInfo(std::forward<Args>(args)...);
+	World.LightComponents[ID] = std::make_shared<LightInfo>(std::forward<Args>(args)...);
 }
 
 template <size_t Component, typename... Args>
 std::enable_if_t<Component == World::Transform, void> ActivateComponent(size_t ID, World &World, Args &&... args)
 {
-	World.ComponentMask[ID][World::Transform] = true;
-	World.TransformComponents[ID] = Transform(std::forward<Args>(args)...);
+	World.TransformComponents[ID] = std::make_shared<Transform>(std::forward<Args>(args)...);
 }

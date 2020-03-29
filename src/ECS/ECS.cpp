@@ -151,26 +151,22 @@ std::enable_if_t<std::is_same<MeshType, Meshes>::value, void> CalculateTransform
 // ForceMainShader is there for future use
 void Render(World &GameWorld, bool ForceMainShader = false)
 {
-	for (size_t MeshIndex = 0; MeshIndex < GameWorld.ComponentMask.size(); MeshIndex++)
+	for (size_t MeshIndex = 0; MeshIndex < GameWorld.PositionComponents.size(); MeshIndex++)
 	{
-		if (GameWorld.ComponentMask[MeshIndex][World::Components::Mesh])
+		if (GameWorld.MeshComponents[MeshIndex])
 		{
-			if (GameWorld.MeshComponents[MeshIndex].Type == Meshes::MeshType::None)
-			{
-				continue;
-			}
 			constexpr size_t MaxLightAmount = 8;
 
 			std::vector<glm::vec3> LightPositions;
 			std::vector<glm::vec3> LightColors;
 
-			for (size_t LightIndex = 0; LightIndex < GameWorld.ComponentMask.size() && LightPositions.size() < MaxLightAmount; LightIndex++)
+			for (size_t LightIndex = 0; LightIndex < GameWorld.PositionComponents.size() && LightPositions.size() < MaxLightAmount; LightIndex++)
 			{
-				if (GameWorld.ComponentMask[LightIndex][World::Components::Light] == false)
+				if (GameWorld.LightComponents[LightIndex] == nullptr)
 				{
 					continue;
 				}
-				auto &Light = GameWorld.LightComponents[LightIndex];
+				auto &Light = *GameWorld.LightComponents[LightIndex];
 				if (Light.LightType == LightInfo::Type::Direction)
 				{
 					//not implemented
@@ -178,11 +174,18 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 				else
 				{
 					glm::vec3 Min, Max;
-					CalculateTransformedMinMax(GameWorld.MeshComponents[MeshIndex], GameWorld.TransformComponents[MeshIndex], Min, Max);
-					glm::vec3 LightPosition = Light.Position;
-					if (GameWorld.ComponentMask[LightIndex][World::Transform])
+					if(GameWorld.TransformComponents[MeshIndex])
 					{
-						auto &Transform = GameWorld.TransformComponents[LightIndex];
+						CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], *GameWorld.TransformComponents[MeshIndex], Min, Max);
+					}
+					else
+					{
+						CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], Transform(), Min, Max);
+					}
+					glm::vec3 LightPosition = Light.Position;
+					if (GameWorld.TransformComponents[LightIndex])
+					{
+						auto &Transform = *GameWorld.TransformComponents[LightIndex];
 						if (Transform.PositionSpace == Transform::Space::Model)
 						{
 							LightPosition = Transform(glm::dvec4(LightPosition, 1));
@@ -208,16 +211,16 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			GameWorld.ShaderProgram.SetUniform("u_LightColor", LightColors);
 			GameWorld.ShaderProgram.SetUniform("u_AmountOfLights", (GLuint)LightPositions.size());
 
-			if (GameWorld.ComponentMask[MeshIndex][World::Transform])
+			if (GameWorld.TransformComponents[MeshIndex])
 			{
-				GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * (glm::dmat4x4)GameWorld.TransformComponents[MeshIndex].CalculateFull());
-				GameWorld.ShaderProgram.SetUniform("u_Model", GameWorld.TransformComponents[MeshIndex].CalculateFull());
+				GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * (glm::dmat4x4)GameWorld.TransformComponents[MeshIndex]->CalculateFull());
+				GameWorld.ShaderProgram.SetUniform("u_Model", GameWorld.TransformComponents[MeshIndex]->CalculateFull());
 				GameWorld.ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
-				Render(GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true, true);
+				Render(*GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true, true);
 			}
 			else
 			{
-				Render(GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true);
+				Render(*GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true);
 			}
 		}
 	}
@@ -231,11 +234,11 @@ Error RenderSystem(World &GameWorld, DSeconds dt)
 
 Error AutoPositionSystem(World &GameWorld, DSeconds dt)
 {
-	for (size_t i = 0; i < GameWorld.ComponentMask.size(); i++)
+	for (size_t i = 0; i < GameWorld.PositionComponents.size(); i++)
 	{
-		if (GameWorld.ComponentMask[i][World::Transform])
+		if (GameWorld.TransformComponents[i])
 		{
-			auto &Transform = GameWorld.TransformComponents[i];
+			auto &Transform = *GameWorld.TransformComponents[i];
 			auto &Position = GameWorld.PositionComponents[i];
 			if (Transform.PositionComponentSpace == Transform::Space::View)
 			{
@@ -244,9 +247,9 @@ Error AutoPositionSystem(World &GameWorld, DSeconds dt)
 				{
 					if (Matrix.first == Transform::Type::AutoPosition)
 					{
-						if (HitAutoPosition == false && GameWorld.ComponentMask[i][World::Position])
+						if (HitAutoPosition == false && Position)
 						{
-							Matrix.second = glm::translate(glm::dmat4x4(1), Position);
+							Matrix.second = glm::translate(glm::dmat4x4(1), *Position);
 							HitAutoPosition = true;
 						}
 						else

@@ -107,20 +107,20 @@ int main(int argc, char **argv)
 	ActivateComponent<World::Position>(Cube, GameWorld, 0, 0, 0);
 	ActivateComponent<World::Transform>(Cube, GameWorld);
 	ActivateComponent<World::Light>(Cube, GameWorld);
-	GameWorld.TransformComponents[Cube].Tranformations.push_back({Transform::Type::AutoPosition, glm::mat4x4(1)});
-	GameWorld.LightComponents[Cube].LightType = LightInfo::Type::Point;
-	GameWorld.LightComponents[Cube].Position = {0, 0.3, -1};
+	GameWorld.TransformComponents[Cube]->Tranformations.push_back({Transform::Type::AutoPosition, glm::mat4x4(1)});
+	GameWorld.LightComponents[Cube]->LightType = LightInfo::Type::Point;
+	GameWorld.LightComponents[Cube]->Position = {0, 0.3, -1};
 
 
 	size_t Light = GameWorld.NewEntity();
 	ActivateComponent<World::Light>(Light, GameWorld);
-	GameWorld.LightComponents[Light].LightType = LightInfo::Type::Point;
-	GameWorld.LightComponents[Light].Position = {0, 0.3, -1};
+	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Point;
+	GameWorld.LightComponents[Light]->Position = {0, 0.3, -1};
 
 	Light = GameWorld.NewEntity();
 	ActivateComponent<World::Light>(Light, GameWorld);
-	GameWorld.LightComponents[Light].LightType = LightInfo::Type::Point;
-	GameWorld.LightComponents[Light].Position = {0.5, 1.5, 0.5};
+	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Point;
+	GameWorld.LightComponents[Light]->Position = {0.5, 1.5, 0.5};
 
 	while (!Quit)
 	{
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 
 		if(Keyboard[SDL_SCANCODE_E].Active)
 		{
-			GameWorld.PositionComponents[Cube] += glm::vec3{0.05, 0, 0} * (float)dt.count();
+			*GameWorld.PositionComponents[Cube] += glm::vec3{0.05, 0, 0} * (float)dt.count();
 		}
 
 		for(size_t i=0; i < GameWorld.Systems.size(); i++) {
