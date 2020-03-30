@@ -239,16 +239,16 @@ struct Transform
 	 * 
 	 * Transformations[i].second contains the actual matrix
 	 */
-	std::vector<std::pair<Type, glm::mat4x4>> Tranformations;
+	std::vector<std::pair<Type, glm::dmat4x4>> Tranformations;
 
 	/**
 	 * \brief calculates the full transformation matrix
 	 * 
 	 * \return the full transformation matrix
 	 */
-	glm::mat4x4 CalculateFull()
+	glm::dmat4x4 CalculateFull()
 	{
-		glm::mat4x4 Result(1);
+		glm::dmat4x4 Result(1);
 		for(auto &Matrix : Tranformations)
 		{
 			Result = Matrix.second * Result;
@@ -302,6 +302,101 @@ struct Transform
 	}
 };
 
+struct Children {
+	long Parent = -1;
+	std::vector<size_t> Children;
+
+	/**
+	 * \brief return the parents Transform matrix
+	 * 
+	 * \param GameWorld the world this entity is in
+	 * 
+	 * \return the Transform matrix of the parent
+	 */
+	glm::dmat4x4 CalculateParentTransform(World &GameWorld)
+	{
+		if(Parent == -1)
+		{
+			return glm::dmat4x4(1);
+		}
+		if(GameWorld.ChildrenComponents[Parent] == nullptr)
+		{
+			return glm::dmat4x4(1);
+		}
+		return GameWorld.ChildrenComponents[Parent]->CalculateFullTransform(GameWorld, Parent);
+	}
+
+	/**
+	 * \brief return this entities transform matrix multipled with the parents
+	 * 
+	 * \param GameWorld the world this entity is in
+	 * \param Me the id of this entity
+	 * 
+	 * \return this entities full transform matrix
+	 */
+	glm::dmat4x4 CalculateFullTransform(World &GameWorld, size_t Me)
+	{
+		glm::dmat4x4 Parent = CalculateParentTransform(GameWorld);
+		if(GameWorld.TransformComponents[Me])
+		{
+			return Parent * GameWorld.TransformComponents[Me]->CalculateFull();
+		}
+		else
+		{
+			return Parent;
+		}
+	}
+
+	/**
+	 * \brief makes sure that all other entities have this entity listed in the correct place
+	 * 
+	 * \param Gameworld the world this entity is in
+	 * \param Me this entities ID
+	 */
+	Error EnforceCorrectness(World &GameWorld, size_t Me)
+	{
+		if(Parent != -1)
+		{
+			if(GameWorld.ChildrenComponents[Parent] == nullptr)
+			{
+				ActivateComponent<World::Children>(static_cast<size_t>(Parent), GameWorld);
+			}
+			auto &MyParent = *GameWorld.ChildrenComponents[Parent];
+			bool MeInParent = false;
+			for(size_t i = 0; i < MyParent.Children.size(); i++)
+			{
+				if(MyParent.Children[i] == Me)
+				{
+					if(MeInParent == false)
+					{
+						MeInParent = true;
+						continue;
+					}
+					else
+					{
+						MyParent.Children.erase(MyParent.Children.begin() + i);
+						i--;
+					}
+				}
+			}
+			if(MeInParent == false)
+			{
+				MyParent.Children.push_back(Me);
+			}
+		}
+		for(auto& ChildID : Children)
+		{
+			if(GameWorld.ChildrenComponents[ChildID] == nullptr)
+			{
+				ActivateComponent<World::Children>(ChildID, GameWorld);
+			}
+			auto &Child = *GameWorld.ChildrenComponents[ChildID];
+			Child.Parent = Me;
+		}
+		return Error(Error::Type::None);
+	}
+};
+
 struct World;
 
 /**
@@ -314,10 +409,22 @@ struct UserInput
 	 */
 	static KeyTracker Keyboard;
 
+	/**
+	 * \brief for events before polling begins
+	 */
 	static std::vector<std::function<Error(World&, DSeconds)>> PrePoll;
+	/**
+	 * \brief for events after polling has finished
+	 */
 	static std::vector<std::function<Error(World&, DSeconds)>> PostPoll;
 
+	/**
+	 * \brief for events before an SDL_Event is registred by the Keyboard
+	 */
 	static std::vector<std::function<Error(World&, DSeconds, SDL_Event *)>> PreEvent;
+	/**
+	 * \brief for events after an SDL_Event is registered by the Keyboard
+	 */
 	static std::vector<std::function<Error(World&, DSeconds, SDL_Event *)>> PostEvent;
 };
 
@@ -341,15 +448,17 @@ struct World
 		Position,
 		Mesh,
 		Light,
-		Transform
+		Transform,
+		Children
 	};
 
-	static constexpr size_t ComponentAmount = 4;
+	static constexpr size_t ComponentAmount = 5;
 
 	std::vector<std::shared_ptr<glm::dvec3>> PositionComponents;
 	std::vector<std::shared_ptr<Meshes>> MeshComponents;
 	std::vector<std::shared_ptr<LightInfo>> LightComponents;
 	std::vector<std::shared_ptr<::Transform>> TransformComponents;
+	std::vector<std::shared_ptr<::Children>> ChildrenComponents;
 
 	std::vector<std::function<Error(World &, DSeconds)>> Systems{UserInputSystem, AutoPositionSystem, RenderSystem};
 
@@ -412,4 +521,10 @@ template <size_t Component, typename... Args>
 std::enable_if_t<Component == World::Transform, void> ActivateComponent(size_t ID, World &World, Args &&... args)
 {
 	World.TransformComponents[ID] = std::make_shared<Transform>(std::forward<Args>(args)...);
+}
+
+template <size_t Component, typename... Args>
+std::enable_if_t<Component == World::Children, void> ActivateComponent(size_t ID, World &World, Args &&... args)
+{
+	World.ChildrenComponents[ID] = std::make_shared<Children>(std::forward<Args>(args)...);
 }
