@@ -8,6 +8,8 @@
 
 #include <glm/ext.hpp>
 
+#include "SDL-Helper-Libraries/KeyTracker/KeyTracker.hpp"
+
 #include "Mesh/Mesh.hpp"
 #include "TexturedMesh/TexturedMesh.hpp"
 #include "Camera/Camera.hpp"
@@ -303,16 +305,36 @@ struct Transform
 struct World;
 
 /**
+ * \brief structure for containing user input
+ */
+struct UserInput
+{
+	/**
+	 * \brief the keyboard
+	 */
+	static KeyTracker Keyboard;
+
+	static std::vector<std::function<Error(World&, DSeconds)>> PrePoll;
+	static std::vector<std::function<Error(World&, DSeconds)>> PostPoll;
+
+	static std::vector<std::function<Error(World&, DSeconds, SDL_Event *)>> PreEvent;
+	static std::vector<std::function<Error(World&, DSeconds, SDL_Event *)>> PostEvent;
+};
+
+
+/**
  * \brief the system responsible for updating Matrixes of type Transform::Type::AutoPosition
  */
 Error AutoPositionSystem(World &GameWorld, DSeconds dt);
 Error RenderSystem(World &GameWorld, DSeconds dt);
+Error UserInputSystem(World &GameWorld, DSeconds dt);
 
 /**
  * \brief a class that handles the entire gameworld
  */
 struct World
 {
+	bool Quit = false;
 
 	enum Components
 	{
@@ -329,7 +351,7 @@ struct World
 	std::vector<std::shared_ptr<LightInfo>> LightComponents;
 	std::vector<std::shared_ptr<::Transform>> TransformComponents;
 
-	std::vector<std::function<Error(World &, DSeconds)>> Systems{AutoPositionSystem, RenderSystem};
+	std::vector<std::function<Error(World &, DSeconds)>> Systems{UserInputSystem, AutoPositionSystem, RenderSystem};
 
 	Shader ShaderProgram;
 	Camera View;

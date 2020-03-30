@@ -88,6 +88,11 @@ void Camera::LockViewDirection()
 	m_LookAt = Locked::Direction;
 	UpdateView();
 }
+void Camera::LockViewPitchYaw()
+{
+	m_LookAt = Locked::PitchYaw;
+	UpdateView();
+}
 
 glm::dvec3 Camera::GetViewVector()
 {
@@ -116,6 +121,15 @@ void Camera::LookIn(glm::dvec3 Direction, glm::dvec3 Up /*={0, 1, 0}*/)
 	LockViewDirection();
 }
 
+void Camera::LookIn(double Pitch /*=0*/, double Yaw /*=-90*/, double Roll /*=0*/)
+{
+	m_Pitch = Pitch;
+	m_Yaw = Yaw;
+	m_Roll = Roll;
+
+	LockViewPitchYaw();
+}
+
 void Camera::LookAt(glm::dvec3 Position, glm::dvec3 Up /*={0, 1, 0}*/)
 {
 	m_LookVector = Position;
@@ -141,8 +155,93 @@ void Camera::UpdateView()
 	{
 		m_View = glm::lookAt(m_Position, m_Position + m_LookVector, m_Up);
 	}
-	else
+	else if (m_LookAt == Locked::Position)
 	{
 		m_View = glm::lookAt(m_Position, m_LookVector, m_Up);
 	}
+	else
+	{
+		m_LookVector = glm::normalize(glm::dvec3{
+			glm::cos(glm::radians(m_Yaw)) * glm::cos(glm::radians(m_Pitch)),
+			glm::sin(glm::radians(m_Pitch)),
+			glm::sin(glm::radians(m_Yaw)) * glm::cos(glm::radians(m_Pitch))});
+		glm::dvec3 Right = glm::cross(m_LookVector, glm::normalize(m_Up));
+		glm::dvec3 TrueUp = glm::cross(m_LookVector, Right) * -1.0;
+		TrueUp = glm::rotate(glm::dmat4x4(1), glm::radians(m_Roll), m_LookVector) * glm::dvec4(TrueUp, 1);
+		m_View = glm::lookAt(m_Position, m_Position + m_LookVector, TrueUp);
+	}
+}
+
+void Camera::OffsetPitchYaw(double Pitch,
+							double Yaw,
+							double Roll,
+							double MinPitch /* = NaN*/,
+							double MaxPitch /* = NaN*/,
+							double MinYaw /* = NaN*/,
+							double MaxYaw /* = NaN*/,
+							double MinRoll /* = NaN*/,
+							double MaxRoll /* = NaN*/)
+{
+	m_Pitch += Pitch;
+	if (std::isnan(MinPitch) == false)
+	{
+		if (std::isnan(MaxPitch) == false)
+		{
+			m_Pitch = glm::clamp(m_Pitch, MinPitch, MaxPitch);
+		}
+		else
+		{
+			m_Pitch = glm::max(m_Pitch, MinPitch);
+		}
+	}
+	else
+	{
+		if (std::isnan(MaxPitch) == false)
+		{
+			m_Pitch = glm::min(m_Pitch, MaxPitch);
+		}
+	}
+
+	m_Yaw += Yaw;
+	if (std::isnan(MinYaw) == false)
+	{
+		if (std::isnan(MaxYaw) == false)
+		{
+			m_Yaw = glm::clamp(m_Yaw, MinYaw, MaxYaw);
+		}
+		else
+		{
+			m_Yaw = glm::max(m_Yaw, MinYaw);
+		}
+	}
+	else
+	{
+		if (std::isnan(MaxYaw) == false)
+		{
+			m_Yaw = glm::min(m_Yaw, MaxYaw);
+		}
+	}
+
+	m_Roll += Roll;
+	if (std::isnan(MinRoll) == false)
+	{
+		if (std::isnan(MaxRoll) == false)
+		{
+			m_Roll = glm::clamp(m_Roll, MinRoll, MaxRoll);
+		}
+		else
+		{
+			m_Roll = glm::max(m_Roll, MinRoll);
+		}
+	}
+	else
+	{
+		if (std::isnan(MaxRoll) == false)
+		{
+			m_Roll = glm::min(m_Roll, MaxRoll);
+		}
+	}
+
+	UpdateView();
+	std::cout << glm::to_string(glm::dvec3(m_Pitch, m_Yaw, m_Roll)) << '\n';
 }

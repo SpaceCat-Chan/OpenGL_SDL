@@ -83,13 +83,10 @@ int main(int argc, char **argv)
 	Meshes::TexturedMeshes.push_back(TexturedMesh("res/cube.obj"));
 
 	GameWorld.View.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
-	GameWorld.View.LookIn({0.5, 0.5, 0.5});
+	GameWorld.View.LookIn();
 	GameWorld.View.MoveTo({-1, -1, -1});
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	bool Quit = false;
-	SDL_Event Event;
 
 	KeyTracker Keyboard;
 
@@ -122,51 +119,15 @@ int main(int argc, char **argv)
 	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Point;
 	GameWorld.LightComponents[Light]->Position = {0.5, 1.5, 0.5};
 
-	while (!Quit)
+	while (!GameWorld.Quit)
 	{
 		auto Now = std::chrono::high_resolution_clock::now();
 		DSeconds dt = std::chrono::duration_cast<DSeconds>(Now - LastTime);
 
-		Keyboard.Update(1);
-		while (SDL_PollEvent(&Event))
-		{
-			Keyboard.UpdateKey(&Event);
-			switch (Event.type)
-			{
-
-			case SDL_QUIT:
-				Quit = true;
-				break;
-
-			case SDL_MOUSEMOTION:
-				constexpr double Sensitivity = 0.01;
-				glm::dvec3 CurrentDirection = GameWorld.View.GetViewVector();
-				glm::dmat4 Rotate = glm::rotate(glm::rotate(glm::dmat4x4(1), Event.motion.xrel * Sensitivity, glm::dvec3{0, 1, 0}), Event.motion.yrel * Sensitivity, glm::cross(CurrentDirection, glm::dvec3{0, 1, 0}));
-				GameWorld.View.LookIn(glm::dvec4{CurrentDirection, 0} * Rotate);
-			}
-		}
-
-		if (Keyboard[SDL_SCANCODE_ESCAPE].Clicked)
-		{
-			Quit = true;
-		}
-
-		if (Keyboard[SDL_SCANCODE_W].Active)
-		{
-			GameWorld.View.Move((glm::normalize(GameWorld.View.GetViewVector())) * (1.0 * dt.count()));
-		}
-		if (Keyboard[SDL_SCANCODE_S].Active)
-		{
-			GameWorld.View.Move((glm::normalize(GameWorld.View.GetViewVector())) * (1.0 * -dt.count()));
-		}
+		
 
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if(Keyboard[SDL_SCANCODE_E].Active)
-		{
-			*GameWorld.PositionComponents[Cube] += glm::vec3{0.05, 0, 0} * (float)dt.count();
-		}
 
 		for(size_t i=0; i < GameWorld.Systems.size(); i++) {
 			GameWorld.Systems[i](GameWorld, dt);
