@@ -163,7 +163,7 @@ struct LightInfo
 	LightInfo() = default;
 	LightInfo(const LightInfo &) = default;
 	LightInfo(LightInfo &&) = default;
-	LightInfo(Type _LightType, double _CutoffDistance, double _CutoffAngle = glm::pi<double>()*2, double _Constant = 1, double _Linear = 0.045, double _Quadratic = 0.0075)
+	LightInfo(Type _LightType, double _CutoffDistance, double _CutoffAngle = glm::pi<double>() * 2, double _Constant = 1, double _Linear = 0.045, double _Quadratic = 0.0075)
 	{
 		LightType = _LightType;
 		CutoffAngle = _CutoffAngle;
@@ -249,7 +249,7 @@ struct Transform
 	glm::dmat4x4 CalculateFull()
 	{
 		glm::dmat4x4 Result(1);
-		for(auto &Matrix : Tranformations)
+		for (auto &Matrix : Tranformations)
 		{
 			Result = Matrix.second * Result;
 		}
@@ -263,9 +263,9 @@ struct Transform
 	 */
 	bool ContainsRotations()
 	{
-		for(auto &Matrix : Tranformations)
+		for (auto &Matrix : Tranformations)
 		{
-			if(Matrix.first == Type::Rotate || Matrix.first == Type::Mix)
+			if (Matrix.first == Type::Rotate || Matrix.first == Type::Mix)
 			{
 				return true;
 			}
@@ -281,17 +281,17 @@ struct Transform
 	 * 
 	 * \return the transformed vector
 	 */
-	glm::dvec4 operator()(glm::dvec4 V, bool UseRotations=true)
+	glm::dvec4 operator()(glm::dvec4 V, bool UseRotations = true)
 	{
-		if(UseRotations)
+		if (UseRotations)
 		{
 			return CalculateFull() * V;
 		}
 		else
 		{
-			for(auto &Matrix : Tranformations)
+			for (auto &Matrix : Tranformations)
 			{
-				if(Matrix.first == Type::Rotate || Matrix.first == Type::Mix)
+				if (Matrix.first == Type::Rotate || Matrix.first == Type::Mix)
 				{
 					continue;
 				}
@@ -302,102 +302,9 @@ struct Transform
 	}
 };
 
-struct Children {
-	long Parent = -1;
-	std::vector<size_t> Children;
-
-	/**
-	 * \brief return the parents Transform matrix
-	 * 
-	 * \param GameWorld the world this entity is in
-	 * 
-	 * \return the Transform matrix of the parent
-	 */
-	glm::dmat4x4 CalculateParentTransform(World &GameWorld)
-	{
-		if(Parent == -1)
-		{
-			return glm::dmat4x4(1);
-		}
-		if(GameWorld.ChildrenComponents[Parent] == nullptr)
-		{
-			return glm::dmat4x4(1);
-		}
-		return GameWorld.ChildrenComponents[Parent]->CalculateFullTransform(GameWorld, Parent);
-	}
-
-	/**
-	 * \brief return this entities transform matrix multipled with the parents
-	 * 
-	 * \param GameWorld the world this entity is in
-	 * \param Me the id of this entity
-	 * 
-	 * \return this entities full transform matrix
-	 */
-	glm::dmat4x4 CalculateFullTransform(World &GameWorld, size_t Me)
-	{
-		glm::dmat4x4 Parent = CalculateParentTransform(GameWorld);
-		if(GameWorld.TransformComponents[Me])
-		{
-			return Parent * GameWorld.TransformComponents[Me]->CalculateFull();
-		}
-		else
-		{
-			return Parent;
-		}
-	}
-
-	/**
-	 * \brief makes sure that all other entities have this entity listed in the correct place
-	 * 
-	 * \param Gameworld the world this entity is in
-	 * \param Me this entities ID
-	 */
-	Error EnforceCorrectness(World &GameWorld, size_t Me)
-	{
-		if(Parent != -1)
-		{
-			if(GameWorld.ChildrenComponents[Parent] == nullptr)
-			{
-				ActivateComponent<World::Children>(static_cast<size_t>(Parent), GameWorld);
-			}
-			auto &MyParent = *GameWorld.ChildrenComponents[Parent];
-			bool MeInParent = false;
-			for(size_t i = 0; i < MyParent.Children.size(); i++)
-			{
-				if(MyParent.Children[i] == Me)
-				{
-					if(MeInParent == false)
-					{
-						MeInParent = true;
-						continue;
-					}
-					else
-					{
-						MyParent.Children.erase(MyParent.Children.begin() + i);
-						i--;
-					}
-				}
-			}
-			if(MeInParent == false)
-			{
-				MyParent.Children.push_back(Me);
-			}
-		}
-		for(auto& ChildID : Children)
-		{
-			if(GameWorld.ChildrenComponents[ChildID] == nullptr)
-			{
-				ActivateComponent<World::Children>(ChildID, GameWorld);
-			}
-			auto &Child = *GameWorld.ChildrenComponents[ChildID];
-			Child.Parent = Me;
-		}
-		return Error(Error::Type::None);
-	}
-};
-
 struct World;
+
+struct Children;
 
 /**
  * \brief structure for containing user input
@@ -412,22 +319,21 @@ struct UserInput
 	/**
 	 * \brief for events before polling begins
 	 */
-	static std::vector<std::function<Error(World&, DSeconds)>> PrePoll;
+	static std::vector<std::function<Error(World &, DSeconds)>> PrePoll;
 	/**
 	 * \brief for events after polling has finished
 	 */
-	static std::vector<std::function<Error(World&, DSeconds)>> PostPoll;
+	static std::vector<std::function<Error(World &, DSeconds)>> PostPoll;
 
 	/**
 	 * \brief for events before an SDL_Event is registred by the Keyboard
 	 */
-	static std::vector<std::function<Error(World&, DSeconds, SDL_Event *)>> PreEvent;
+	static std::vector<std::function<Error(World &, DSeconds, SDL_Event *)>> PreEvent;
 	/**
 	 * \brief for events after an SDL_Event is registered by the Keyboard
 	 */
-	static std::vector<std::function<Error(World&, DSeconds, SDL_Event *)>> PostEvent;
+	static std::vector<std::function<Error(World &, DSeconds, SDL_Event *)>> PostEvent;
 };
-
 
 /**
  * \brief the system responsible for updating Matrixes of type Transform::Type::AutoPosition
@@ -465,7 +371,6 @@ struct World
 	Shader ShaderProgram;
 	Camera View;
 
-
 	std::queue<size_t> UnusedIDs;
 
 	/**
@@ -473,7 +378,7 @@ struct World
 	 */
 	size_t NewEntity()
 	{
-		if(UnusedIDs.empty() == false)
+		if (UnusedIDs.empty() == false)
 		{
 			size_t Result = UnusedIDs.front();
 			UnusedIDs.pop();
@@ -485,6 +390,7 @@ struct World
 			MeshComponents.emplace_back(nullptr);
 			LightComponents.emplace_back(nullptr);
 			TransformComponents.emplace_back(nullptr);
+			ChildrenComponents.emplace_back(nullptr);
 			return PositionComponents.size() - 1;
 		}
 	}
@@ -495,6 +401,7 @@ struct World
 		MeshComponents[ID] = nullptr;
 		LightComponents[ID] = nullptr;
 		TransformComponents[ID] = nullptr;
+		ChildrenComponents[ID] = nullptr;
 		UnusedIDs.push(ID);
 	}
 };
@@ -528,3 +435,99 @@ std::enable_if_t<Component == World::Children, void> ActivateComponent(size_t ID
 {
 	World.ChildrenComponents[ID] = std::make_shared<Children>(std::forward<Args>(args)...);
 }
+
+struct Children
+{
+	long Parent = -1;
+	std::vector<size_t> Children;
+
+	/**
+	 * \brief return the parents Transform matrix
+	 * 
+	 * \param GameWorld the world this entity is in
+	 * 
+	 * \return the Transform matrix of the parent
+	 */
+	glm::dmat4x4 CalculateParentTransform(World &GameWorld)
+	{
+		if (Parent == -1)
+		{
+			return glm::dmat4x4(1);
+		}
+		if (GameWorld.ChildrenComponents[Parent] == nullptr)
+		{
+			return glm::dmat4x4(1);
+		}
+		return GameWorld.ChildrenComponents[Parent]->CalculateFullTransform(GameWorld, Parent);
+	}
+
+	/**
+	 * \brief return this entities transform matrix multipled with the parents
+	 * 
+	 * \param GameWorld the world this entity is in
+	 * \param Me the id of this entity
+	 * 
+	 * \return this entities full transform matrix
+	 */
+	glm::dmat4x4 CalculateFullTransform(World &GameWorld, size_t Me)
+	{
+		glm::dmat4x4 Parent = CalculateParentTransform(GameWorld);
+		if (GameWorld.TransformComponents[Me])
+		{
+			return Parent * GameWorld.TransformComponents[Me]->CalculateFull();
+		}
+		else
+		{
+			return Parent;
+		}
+	}
+
+	/**
+	 * \brief makes sure that all other entities have this entity listed in the correct place
+	 * 
+	 * \param Gameworld the world this entity is in
+	 * \param Me this entities ID
+	 */
+	Error EnforceCorrectness(World &GameWorld, size_t Me)
+	{
+		if (Parent != -1)
+		{
+			if (GameWorld.ChildrenComponents[Parent] == nullptr)
+			{
+				ActivateComponent<World::Children>(static_cast<size_t>(Parent), GameWorld);
+			}
+			auto &MyParent = *GameWorld.ChildrenComponents[Parent];
+			bool MeInParent = false;
+			for (size_t i = 0; i < MyParent.Children.size(); i++)
+			{
+				if (MyParent.Children[i] == Me)
+				{
+					if (MeInParent == false)
+					{
+						MeInParent = true;
+						continue;
+					}
+					else
+					{
+						MyParent.Children.erase(MyParent.Children.begin() + i);
+						i--;
+					}
+				}
+			}
+			if (MeInParent == false)
+			{
+				MyParent.Children.push_back(Me);
+			}
+		}
+		for (auto &ChildID : Children)
+		{
+			if (GameWorld.ChildrenComponents[ChildID] == nullptr)
+			{
+				ActivateComponent<World::Children>(ChildID, GameWorld);
+			}
+			auto &Child = *GameWorld.ChildrenComponents[ChildID];
+			Child.Parent = Me;
+		}
+		return Error(Error::Type::None);
+	}
+};

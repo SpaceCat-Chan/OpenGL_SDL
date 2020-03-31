@@ -108,6 +108,15 @@ int main(int argc, char **argv)
 	GameWorld.LightComponents[Cube]->LightType = LightInfo::Type::Point;
 	GameWorld.LightComponents[Cube]->Position = {0, 0.3, -1};
 
+	Cube = GameWorld.NewEntity();
+	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
+	ActivateComponent<World::Position>(Cube, GameWorld, 0, 1, 0);
+	ActivateComponent<World::Transform>(Cube, GameWorld);
+	GameWorld.TransformComponents[Cube]->Tranformations.push_back({Transform::Type::AutoPosition, glm::mat4x4(1)});
+	GameWorld.TransformComponents[Cube]->Tranformations.push_back({Transform::Type::Rotate, glm::rotate(glm::dmat4x4(1), glm::radians(90.0), glm::dvec3(0, 0, -1))});
+	ActivateComponent<World::Children>(Cube, GameWorld);
+	GameWorld.ChildrenComponents[Cube]->Parent = Cube - 1;
+	GameWorld.ChildrenComponents[Cube]->EnforceCorrectness(GameWorld, Cube);
 
 	size_t Light = GameWorld.NewEntity();
 	ActivateComponent<World::Light>(Light, GameWorld);
@@ -124,12 +133,11 @@ int main(int argc, char **argv)
 		auto Now = std::chrono::high_resolution_clock::now();
 		DSeconds dt = std::chrono::duration_cast<DSeconds>(Now - LastTime);
 
-		
-
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		for(size_t i=0; i < GameWorld.Systems.size(); i++) {
+		for (size_t i = 0; i < GameWorld.Systems.size(); i++)
+		{
 			GameWorld.Systems[i](GameWorld, dt);
 		}
 

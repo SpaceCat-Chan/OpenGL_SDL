@@ -83,17 +83,16 @@ void ExpandArea(glm::dvec3 Min, glm::dvec3 Max, double Amount = sqrt2)
 }
 
 template <class MeshType>
-std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, TexturedMesh>::value, void> CalculateTransformedMinMax(MeshType &Mesh, Transform Transformation, glm::vec3 &ResultMin, glm::vec3 &ResultMax)
+std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, TexturedMesh>::value, void> CalculateTransformedMinMax(MeshType &Mesh, glm::dmat4x4 Transform, glm::dvec3 &ResultMin, glm::dvec3 &ResultMax)
 {
 	std::array<glm::vec3, 6> VertexExtremes;
-	glm::mat4x4 FullMatrix = Transformation.CalculateFull();
 
-	VertexExtremes[0] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegX), 1);
-	VertexExtremes[1] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegY), 1);
-	VertexExtremes[2] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegZ), 1);
-	VertexExtremes[4] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosY), 1);
-	VertexExtremes[5] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosZ), 1);
-	VertexExtremes[3] = FullMatrix * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosX), 1);
+	VertexExtremes[0] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegX), 1);
+	VertexExtremes[1] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegY), 1);
+	VertexExtremes[2] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::NegZ), 1);
+	VertexExtremes[4] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosY), 1);
+	VertexExtremes[5] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosZ), 1);
+	VertexExtremes[3] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosX), 1);
 
 	ResultMin = {
 		VertexExtremes[0].x,
@@ -105,7 +104,7 @@ std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, T
 		VertexExtremes[4].y,
 		VertexExtremes[5].z};
 
-	if (Transformation.ContainsRotations())
+	if (true) //this is here until i figure out how to check for rotation
 	{
 		//rotation may change which side the extremes belong to
 		for (auto &Vertex : VertexExtremes)
@@ -142,15 +141,15 @@ std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, T
 }
 
 template <class MeshType>
-std::enable_if_t<std::is_same<MeshType, Meshes>::value, void> CalculateTransformedMinMax(MeshType Mesh, Transform Transformation, glm::vec3 &ResultMin, glm::vec3 &ResultMax)
+std::enable_if_t<std::is_same<MeshType, Meshes>::value, void> CalculateTransformedMinMax(MeshType Mesh, glm::dmat4x4 Transform, glm::dvec3 &ResultMin, glm::dvec3 &ResultMax)
 {
 	if (Mesh.Type == Meshes::MeshType::Static)
 	{
-		CalculateTransformedMinMax(Meshes::StaticMeshes[Mesh.MeshIndex], Transformation, ResultMin, ResultMax);
+		CalculateTransformedMinMax(Meshes::StaticMeshes[Mesh.MeshIndex], Transform, ResultMin, ResultMax);
 	}
 	else
 	{
-		CalculateTransformedMinMax(Meshes::TexturedMeshes[Mesh.MeshIndex], Transformation, ResultMin, ResultMax);
+		CalculateTransformedMinMax(Meshes::TexturedMeshes[Mesh.MeshIndex], Transform, ResultMin, ResultMax);
 	}
 }
 
@@ -166,6 +165,22 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			std::vector<glm::vec3> LightPositions;
 			std::vector<glm::vec3> LightColors;
 
+			glm::dvec3 Min, Max;
+			glm::dmat4x4 MeshTransform;
+			if (GameWorld.ChildrenComponents[MeshIndex])
+			{
+				MeshTransform = GameWorld.ChildrenComponents[MeshIndex]->CalculateFullTransform(GameWorld, MeshIndex);
+			}
+			else if (GameWorld.TransformComponents[MeshIndex])
+			{
+				MeshTransform = GameWorld.TransformComponents[MeshIndex]->CalculateFull();
+			}
+			else
+			{
+				MeshTransform = glm::dmat4x4(1);
+			}
+			CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], MeshTransform, Min, Max);
+
 			for (size_t LightIndex = 0; LightIndex < GameWorld.PositionComponents.size() && LightPositions.size() < MaxLightAmount; LightIndex++)
 			{
 				if (GameWorld.LightComponents[LightIndex] == nullptr)
@@ -179,17 +194,12 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 				}
 				else
 				{
-					glm::vec3 Min, Max;
-					if (GameWorld.TransformComponents[MeshIndex])
+					glm::dvec3 LightPosition = Light.Position;
+					if (GameWorld.ChildrenComponents[LightIndex])
 					{
-						CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], *GameWorld.TransformComponents[MeshIndex], Min, Max);
+						LightPosition = GameWorld.ChildrenComponents[LightIndex]->CalculateFullTransform(GameWorld, LightIndex) * glm::dvec4(LightPosition, 1);
 					}
-					else
-					{
-						CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], Transform(), Min, Max);
-					}
-					glm::vec3 LightPosition = Light.Position;
-					if (GameWorld.TransformComponents[LightIndex])
+					else if (GameWorld.TransformComponents[LightIndex])
 					{
 						auto &Transform = *GameWorld.TransformComponents[LightIndex];
 						if (Transform.PositionSpace == Transform::Space::Model)
@@ -197,7 +207,7 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 							LightPosition = Transform(glm::dvec4(LightPosition, 1));
 						}
 					}
-					glm::vec3 Position = glm::clamp(glm::vec3(LightPosition), Min, Max);
+					glm::dvec3 Position = glm::clamp(glm::dvec3(LightPosition), Min, Max);
 
 					bool WithinRange = glm::pow(Light.CutoffDistance, 2) > glm::pow(Position.x, 2) + glm::pow(Position.y, 2) + glm::pow(Position.z, 2);
 					if (WithinRange)
@@ -210,7 +220,7 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 
 			for (size_t i = 0; i < LightPositions.size(); i++)
 			{
-				LightPositions[i] = glm::vec3(GameWorld.View.GetView() * glm::vec4(LightPositions[i], 1));
+				LightPositions[i] = glm::dvec3(GameWorld.View.GetView() * glm::dvec4(LightPositions[i], 1));
 			}
 
 			GameWorld.ShaderProgram.SetUniform("u_Camera_LightPosition", LightPositions);
@@ -219,8 +229,8 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 
 			if (GameWorld.TransformComponents[MeshIndex])
 			{
-				GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * (glm::dmat4x4)GameWorld.TransformComponents[MeshIndex]->CalculateFull());
-				GameWorld.ShaderProgram.SetUniform("u_Model", GameWorld.TransformComponents[MeshIndex]->CalculateFull());
+				GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * MeshTransform);
+				GameWorld.ShaderProgram.SetUniform("u_Model", MeshTransform);
 				GameWorld.ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
 				Render(*GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true, true);
 			}
@@ -273,7 +283,7 @@ Error AutoPositionSystem(World &GameWorld, DSeconds dt)
 Error UserInputSystem(World &GameWorld, DSeconds dt)
 {
 
-	for(auto &Handler : UserInput::PrePoll)
+	for (auto &Handler : UserInput::PrePoll)
 	{
 		Handler(GameWorld, dt);
 	}
@@ -282,7 +292,7 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 	UserInput::Keyboard.Update(1);
 	while (SDL_PollEvent(&Event))
 	{
-		for(auto &Handler : UserInput::PreEvent)
+		for (auto &Handler : UserInput::PreEvent)
 		{
 			Handler(GameWorld, dt, &Event);
 		}
@@ -300,13 +310,13 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 			GameWorld.View.OffsetPitchYaw((double)Event.motion.yrel * Sensitivity * -1, (double)Event.motion.xrel * Sensitivity, 0, -89, 89);
 		}
 
-		for(auto &Handler : UserInput::PostEvent)
+		for (auto &Handler : UserInput::PostEvent)
 		{
 			Handler(GameWorld, dt, &Event);
 		}
 	}
 
-	for(auto &Handler : UserInput::PostPoll)
+	for (auto &Handler : UserInput::PostPoll)
 	{
 		Handler(GameWorld, dt);
 	}
@@ -327,14 +337,18 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 
 	if (UserInput::Keyboard[SDL_SCANCODE_E].Active)
 	{
-		*GameWorld.PositionComponents[1] += glm::vec3{0.05, 0, 0} * (float)dt.count();
+		*GameWorld.PositionComponents[1] += glm::dvec3{0.05, 0, 0} * dt.count();
+	}
+	if (UserInput::Keyboard[SDL_SCANCODE_Q].Active)
+	{
+		*GameWorld.PositionComponents[2] += glm::dvec3{0, 0.05, 0} * dt.count();
 	}
 
 	if (UserInput::Keyboard[SDL_SCANCODE_LEFT].Clicked)
 	{
 		GameWorld.View.OffsetPitchYaw(0, 0, -10);
 	}
-	if(UserInput::Keyboard[SDL_SCANCODE_RIGHT].Clicked)
+	if (UserInput::Keyboard[SDL_SCANCODE_RIGHT].Clicked)
 	{
 		GameWorld.View.OffsetPitchYaw(0, 0, 10);
 	}
