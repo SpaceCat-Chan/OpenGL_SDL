@@ -2,6 +2,9 @@
 #define MaxLightAmount 8
 
 in Material {
+	vec3 Ambient;
+	vec3 Diffuse;
+	vec3 Specular;
 	float Shininess;
 } material;
 
@@ -59,24 +62,22 @@ void main(void) {
 	vec3 LightColors;
 
 	for(int i=0; i < u_AmountOfLights; i++) {
-		vec3 Ambient = texture(u_Texture, UV).rgb * u_LightColor[i];
+		vec3 Ambient = texture(u_Texture, UV).rgb * u_LightColor[i] * material.Ambient;
 	
 		vec3 N = Tangent_Normal;
 		vec3 L = Fragment.Tangent_LightDirection[i];
 
 		float DiffusePower = max(dot(N, L), 0.0);
-		vec3 Diffuse = texture(u_Texture, UV).rgb * DiffusePower * u_LightColor[i];
+		vec3 Diffuse = texture(u_Texture, UV).rgb * DiffusePower * u_LightColor[i] * material.Diffuse;
 	
 
 		vec3 P = normalize(Fragment.Tangent_CameraPosition - Fragment.Tangent_ModelPosition);
 		vec3 H = normalize(L + P);
 
 		float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
-		vec3 Specular = texture(u_Specular, UV).rgb * SpecularPower * u_LightColor[i];
+		vec3 Specular = texture(u_Specular, UV).rgb * SpecularPower * u_LightColor[i] * material.Specular;
 
 		float Attenuation = 1 / Fragment.Tangent_LightDistance[i];
-
-		Ambient *= 0.1;
 
 		Ambient *= Attenuation;
 		Diffuse *= Attenuation;

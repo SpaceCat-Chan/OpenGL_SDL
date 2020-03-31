@@ -337,7 +337,7 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 
 	if (UserInput::Keyboard[SDL_SCANCODE_E].Active)
 	{
-		*GameWorld.PositionComponents[1] += glm::dvec3{0.05, 0, 0} * dt.count();
+		*GameWorld.PositionComponents[1] += glm::dvec3{0.2, 0, 0} * dt.count();
 	}
 	if (UserInput::Keyboard[SDL_SCANCODE_Q].Active)
 	{

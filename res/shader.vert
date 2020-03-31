@@ -4,11 +4,17 @@
 layout(location = 0) in vec3 in_Model_Position;
 layout(location = 1) in vec2 in_UV;
 layout(location = 2) in vec3 in_Model_Normal;
-layout(location = 3) in float in_Shininess;
 layout(location = 4) in vec3 in_Model_Tangent;
 layout(location = 5) in vec3 in_Model_BiTangent;
+layout(location = 6) in vec3 in_Ambient;
+layout(location = 7) in vec3 in_Diffuse;
+layout(location = 8) in vec3 in_Specular;
+layout(location = 3) in float in_Shininess;
 
 out Material {
+	vec3 Ambient;
+	vec3 Diffuse;
+	vec3 Specular;
 	float Shininess;
 } material;
 
@@ -52,7 +58,9 @@ void main(void) {
 	mat3 TBN = transpose(mat3(T, B, N));
 	vertex.TBN = mat3(T, B, N);
 
-
+	material.Ambient = in_Ambient;
+	material.Diffuse = in_Diffuse;
+	material.Specular = in_Specular;
 	material.Shininess = in_Shininess;
 
 	vertex.UV = in_UV;

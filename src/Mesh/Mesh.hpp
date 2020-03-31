@@ -19,7 +19,7 @@
  */
 class Mesh
 {
-	static constexpr size_t BufferAmount = 6;
+	static constexpr size_t BufferAmount = 9;
 	GLuint m_VertexArray = 0;
 	GLuint m_VertexBuffer[BufferAmount];
 	std::vector<GLuint> m_IndexBuffer;

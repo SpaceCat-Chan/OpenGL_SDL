@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 
 	Cube = GameWorld.NewEntity();
 	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
-	ActivateComponent<World::Position>(Cube, GameWorld, 0, 0, 0);
+	ActivateComponent<World::Position>(Cube, GameWorld, 1, 0, 0);
 	ActivateComponent<World::Transform>(Cube, GameWorld);
 	ActivateComponent<World::Light>(Cube, GameWorld);
 	GameWorld.TransformComponents[Cube]->Tranformations.push_back({Transform::Type::AutoPosition, glm::mat4x4(1)});

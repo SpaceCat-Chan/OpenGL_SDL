@@ -397,11 +397,11 @@ struct World
 
 	void DeleteEntity(size_t ID)
 	{
-		PositionComponents[ID] = nullptr;
-		MeshComponents[ID] = nullptr;
-		LightComponents[ID] = nullptr;
-		TransformComponents[ID] = nullptr;
-		ChildrenComponents[ID] = nullptr;
+		PositionComponents.at(ID) = nullptr;
+		MeshComponents.at(ID) = nullptr;
+		LightComponents.at(ID) = nullptr;
+		TransformComponents.at(ID) = nullptr;
+		ChildrenComponents.at(ID) = nullptr;
 		UnusedIDs.push(ID);
 	}
 };

@@ -58,6 +58,9 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	std::vector<GLfloat> Positions;
 	std::vector<GLfloat> UVCoords;
 	std::vector<GLfloat> Normals;
+	std::vector<GLfloat> AmbientColor;
+	std::vector<GLfloat> DiffuseColor;
+	std::vector<GLfloat> SpecularColor;
 	std::vector<GLfloat> Shininess;
 	std::vector<std::vector<glm::vec3>> Tangents;
 	std::vector<GLfloat> TangentsAvaregedAndSplit;
@@ -230,9 +233,27 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				if (StoredIndexes[i][j].Material != -1)
 				{
 					Shininess.push_back(MeshMaterials[StoredIndexes[i][j].Material].shininess);
+					AmbientColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].ambient[0]);
+					AmbientColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].ambient[1]);
+					AmbientColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].ambient[2]);
+					DiffuseColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].diffuse[0]);
+					DiffuseColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].diffuse[1]);
+					DiffuseColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].diffuse[2]);
+					SpecularColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].specular[0]);
+					SpecularColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].specular[1]);
+					SpecularColor.push_back(MeshMaterials[StoredIndexes[i][j].Material].specular[2]);
 				}
 				else
 				{
+					AmbientColor.push_back(0.2);
+					AmbientColor.push_back(0.2);
+					AmbientColor.push_back(0.2);
+					DiffuseColor.push_back(0.8);
+					DiffuseColor.push_back(0.8);
+					DiffuseColor.push_back(0.8);
+					SpecularColor.push_back(1.0);
+					SpecularColor.push_back(1.0);
+					SpecularColor.push_back(1.0);
 					Shininess.push_back(1.0);
 				}
 
@@ -243,6 +264,8 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].x);
 				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].y);
 				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].z);
+
+				
 
 				ExpandedIndexes[i].push_back((Positions.size() - 1) / 3);
 			}
@@ -291,6 +314,21 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 	glBufferData(GL_ARRAY_BUFFER, BiTangentsAvaregedAndSplit.size() * sizeof(GLfloat), BiTangentsAvaregedAndSplit.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(5, 3, GL_FLOAT, false, 0, nullptr);
 	glEnableVertexAttribArray(5);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[6]);
+	glBufferData(GL_ARRAY_BUFFER, AmbientColor.size() * sizeof(GLfloat), AmbientColor.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(6, 3, GL_FLOAT, false, 0, nullptr);
+	glEnableVertexAttribArray(6);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[7]);
+	glBufferData(GL_ARRAY_BUFFER, DiffuseColor.size() * sizeof(GLfloat), DiffuseColor.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(7, 3, GL_FLOAT, false, 0, nullptr);
+	glEnableVertexAttribArray(7);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer[8]);
+	glBufferData(GL_ARRAY_BUFFER, SpecularColor.size() * sizeof(GLfloat), SpecularColor.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(8, 3, GL_FLOAT, false, 0, nullptr);
+	glEnableVertexAttribArray(8);
 
 	MostExtremeVertexes.clear();
 	for (size_t i = 0; i < MeshAttributes.vertices.size(); i += 3)

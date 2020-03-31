@@ -243,5 +243,4 @@ void Camera::OffsetPitchYaw(double Pitch,
 	}
 
 	UpdateView();
-	std::cout << glm::to_string(glm::dvec3(m_Pitch, m_Yaw, m_Roll)) << '\n';
 }
