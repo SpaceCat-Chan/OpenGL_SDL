@@ -101,18 +101,22 @@ public:
 	void SetUniform(std::string Name, glm::dmat4x4);
 	
 	void SetUniform(std::string Name, std::vector<GLfloat>);
+	void SetUniform(std::string Name, std::vector<std::conditional_t<!std::is_same_v<GLfloat, float>, float, double>>);
 	void SetUniform(std::string Name, std::vector<GLint>);
 	void SetUniform(std::string Name, std::vector<GLuint>);
 	
 	void SetUniform(std::string Name, std::vector<glm::vec2>);
+	void SetUniform(std::string Name, std::vector<glm::dvec2>);
 	void SetUniform(std::string Name, std::vector<glm::ivec2>);
 	void SetUniform(std::string Name, std::vector<glm::uvec2>);
 	
 	void SetUniform(std::string Name, std::vector<glm::vec3>);
+	void SetUniform(std::string Name, std::vector<glm::dvec3>);
 	void SetUniform(std::string Name, std::vector<glm::ivec3>);
 	void SetUniform(std::string Name, std::vector<glm::uvec3>);
 	
 	void SetUniform(std::string Name, std::vector<glm::vec4>);
+	void SetUniform(std::string Name, std::vector<glm::dvec4>);
 	void SetUniform(std::string Name, std::vector<glm::ivec4>);
 	void SetUniform(std::string Name, std::vector<glm::uvec4>);
 	///@}

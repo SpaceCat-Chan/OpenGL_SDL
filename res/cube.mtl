@@ -25,3 +25,9 @@ map_Ks res/white.png
 map_bump res/bricks2_normal.jpg
 disp res/bricks2_disp.jpg
 Ns 128.0
+
+newmtl Utah
+Ka 0.1 0.1 0.1
+Kd 1.0 1.0 1.0
+Ks 0.5 0.5 0.5
+Ns 128

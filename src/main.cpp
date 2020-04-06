@@ -80,12 +80,46 @@ int main(int argc, char **argv)
 	GameWorld.ShaderProgram.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
 	GameWorld.ShaderProgram.Link();
 
+	std::cout << "res/cube.obj\n";
 	Meshes::TexturedMeshes.push_back(TexturedMesh("res/cube.obj"));
+	std::cout << "\n\nres/BrickWall.obj\n";
+	Meshes::TexturedMeshes.push_back(TexturedMesh("res/BrickWall.obj"));
+	std::cout << "\n\nres/3DBrickWall.obj\n";
+	Meshes::TexturedMeshes.push_back(TexturedMesh("res/3DBrickWall.obj"));
+	{
+		std::cout << "\n\nres/teapot.obj\n";
+		Mesh Utah;
+		std::vector<std::string> a;
+		Utah.LoadMesh("res/teapot.obj", a, a, a, a);
+		Meshes::StaticMeshes.push_back(std::move(Utah));
+	}
+	{
+		std::cout << "\n\nres/junc.obj\n";
+		Mesh Utah;
+		std::vector<std::string> a;
+		Utah.LoadMesh("res/junc.obj", a, a, a, a);
+		Meshes::StaticMeshes.push_back(std::move(Utah));
+	}
+	{
+		std::cout << "\n\nres/LightCube.obj\n";
+		Mesh Utah;
+		std::vector<std::string> a;
+		Utah.LoadMesh("res/LightCube.obj", a, a, a, a);
+		Meshes::StaticMeshes.push_back(std::move(Utah));
+	}
+
+
+	enum {
+		CubeMesh,
+		BrickWallMesh,
+		BrickWall3DMesh
+	};
 
 	GameWorld.View.CreateProjectionX(glm::radians(90.0), 4 / 3, 0.01, 1000);
 	GameWorld.View.LookIn();
 	GameWorld.View.MoveTo({-1, -1, -1});
 
+	
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	KeyTracker Keyboard;
@@ -96,27 +130,81 @@ int main(int argc, char **argv)
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	size_t Cube = GameWorld.NewEntity();
-	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
+	{
+		size_t CubeOne = GameWorld.NewEntity();
+		size_t CubeTwo = GameWorld.NewEntity();
+		size_t BrickFloor = GameWorld.NewEntity();
+		size_t BrickWall = GameWorld.NewEntity();
 
-	Cube = GameWorld.NewEntity();
-	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
-	ActivateComponent<World::Position>(Cube, GameWorld, 1, 0, 0);
-	ActivateComponent<World::Transform>(Cube, GameWorld);
-	ActivateComponent<World::Light>(Cube, GameWorld);
-	GameWorld.TransformComponents[Cube]->Tranformations.push_back({Transform::Type::AutoPosition, glm::mat4x4(1)});
-	GameWorld.LightComponents[Cube]->LightType = LightInfo::Type::Point;
-	GameWorld.LightComponents[Cube]->Position = {0, 0.3, -1};
+		ActivateComponent<World::Mesh>(CubeOne, GameWorld, Meshes::MeshType::Textured, CubeMesh);
+		ActivateComponent<World::Mesh>(CubeTwo, GameWorld, Meshes::MeshType::Textured, CubeMesh);
+		ActivateComponent<World::Mesh>(BrickFloor, GameWorld, Meshes::MeshType::Textured, BrickWallMesh);
+		ActivateComponent<World::Mesh>(BrickWall, GameWorld, Meshes::MeshType::Textured, BrickWall3DMesh);
 
-	Cube = GameWorld.NewEntity();
-	ActivateComponent<World::Mesh>(Cube, GameWorld, Meshes::MeshType::Textured, 0);
-	ActivateComponent<World::Position>(Cube, GameWorld, 0, 1, 0);
-	ActivateComponent<World::Transform>(Cube, GameWorld);
-	GameWorld.TransformComponents[Cube]->Tranformations.push_back({Transform::Type::AutoPosition, glm::mat4x4(1)});
-	GameWorld.TransformComponents[Cube]->Tranformations.push_back({Transform::Type::Rotate, glm::rotate(glm::dmat4x4(1), glm::radians(90.0), glm::dvec3(0, 0, -1))});
-	ActivateComponent<World::Children>(Cube, GameWorld);
-	GameWorld.ChildrenComponents[Cube]->Parent = Cube - 1;
-	GameWorld.ChildrenComponents[Cube]->EnforceCorrectness(GameWorld, Cube);
+		ActivateComponent<World::Position>(CubeTwo, GameWorld, 0, 2, 0);
+		ActivateComponent<World::Transform>(CubeTwo, GameWorld);
+		GameWorld.TransformComponents[CubeTwo]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
+
+		size_t CubeGroupParent = GameWorld.NewEntity();
+		ActivateComponent<World::Children>(CubeGroupParent, GameWorld);
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(CubeOne);
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(CubeTwo);
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(BrickFloor);
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(BrickWall);
+		GameWorld.ChildrenComponents[CubeGroupParent]->EnforceCorrectness(GameWorld, CubeGroupParent);
+
+		CubeOne = GameWorld.CloneEntity(CubeOne);
+		CubeTwo = GameWorld.CloneEntity(CubeTwo);
+		BrickFloor = GameWorld.CloneEntity(BrickFloor);
+		BrickWall = GameWorld.CloneEntity(BrickWall);
+
+		CubeGroupParent = GameWorld.NewEntity();
+		ActivateComponent<World::Position>(CubeGroupParent, GameWorld, 1, 0, 0);
+		ActivateComponent<World::Transform>(CubeGroupParent, GameWorld);
+		ActivateComponent<World::Children>(CubeGroupParent, GameWorld);
+		GameWorld.TransformComponents[CubeGroupParent]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
+
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(CubeOne);
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(CubeTwo);
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(BrickFloor);
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(BrickWall);
+		GameWorld.ChildrenComponents[CubeGroupParent]->EnforceCorrectness(GameWorld, CubeGroupParent);
+
+
+		CubeOne = GameWorld.CloneEntity(CubeOne);
+		CubeTwo = GameWorld.CloneEntity(CubeTwo);
+		BrickFloor = GameWorld.CloneEntity(BrickFloor);
+		BrickWall = GameWorld.CloneEntity(BrickWall);
+
+		size_t CubeGroup2Parent = GameWorld.NewEntity();
+		ActivateComponent<World::Position>(CubeGroup2Parent, GameWorld, 0, 1, 0);
+		ActivateComponent<World::Transform>(CubeGroup2Parent, GameWorld);
+		ActivateComponent<World::Children>(CubeGroup2Parent, GameWorld);
+		GameWorld.TransformComponents[CubeGroup2Parent]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
+		GameWorld.TransformComponents[CubeGroup2Parent]->Tranformations.push_back({Transform::Type::Rotate, glm::rotate(glm::dmat4x4(1), glm::radians(90.0), glm::dvec3{0, 0, -1})});
+
+		GameWorld.ChildrenComponents[CubeGroup2Parent]->Children.push_back(CubeOne);
+		GameWorld.ChildrenComponents[CubeGroup2Parent]->Children.push_back(CubeTwo);
+		GameWorld.ChildrenComponents[CubeGroup2Parent]->Children.push_back(BrickFloor);
+		GameWorld.ChildrenComponents[CubeGroup2Parent]->Children.push_back(BrickWall);
+		GameWorld.ChildrenComponents[CubeGroup2Parent]->EnforceCorrectness(GameWorld, CubeGroup2Parent);
+
+	
+		GameWorld.ChildrenComponents[CubeGroupParent]->Children.push_back(CubeGroup2Parent);
+		GameWorld.ChildrenComponents[CubeGroupParent]->EnforceCorrectness(GameWorld, CubeGroupParent);
+	}
+
+	size_t Utah = GameWorld.NewEntity();
+	ActivateComponent<World::Position>(Utah, GameWorld, -3, 0, 0);
+	ActivateComponent<World::Mesh>(Utah, GameWorld, Meshes::MeshType::Static, 0);
+	ActivateComponent<World::Transform>(Utah, GameWorld);
+	GameWorld.TransformComponents[Utah]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
+
+	Utah = GameWorld.NewEntity();
+	ActivateComponent<World::Position>(Utah, GameWorld, 0, 0, -3);
+	ActivateComponent<World::Mesh>(Utah, GameWorld, Meshes::MeshType::Static, 1);
+	ActivateComponent<World::Transform>(Utah, GameWorld);
+	GameWorld.TransformComponents[Utah]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
 
 	size_t Light = GameWorld.NewEntity();
 	ActivateComponent<World::Light>(Light, GameWorld);
@@ -125,6 +213,7 @@ int main(int argc, char **argv)
 
 	Light = GameWorld.NewEntity();
 	ActivateComponent<World::Light>(Light, GameWorld);
+	ActivateComponent<World::Mesh>(Light, GameWorld, Meshes::MeshType::Static, 2, false);
 	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Point;
 	GameWorld.LightComponents[Light]->Position = {0.5, 1.5, 0.5};
 

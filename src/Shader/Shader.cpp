@@ -277,6 +277,19 @@ void Shader::SetUniform(std::string Name, std::vector<GLfloat> v0)
 	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());
 	glUniform1fv(Position, v0.size(), v0.data());
 }
+
+void Shader::SetUniform(std::string Name, std::vector<std::conditional_t<!std::is_same_v<GLfloat, float>, float, double>> v0)
+{
+	Bind();
+	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());
+	std::vector<GLfloat> Converted;
+	Converted.reserve(v0.size() * 2);
+	for (auto &v : v0)
+	{
+		Converted.push_back(v);
+	}
+	glUniform2fv(Position, v0.size(), Converted.data());
+}
 void Shader::SetUniform(std::string Name, std::vector<GLint> v0)
 {
 	Bind();
@@ -291,6 +304,19 @@ void Shader::SetUniform(std::string Name, std::vector<GLuint> v0)
 }
 
 void Shader::SetUniform(std::string Name, std::vector<glm::vec2> v0)
+{
+	Bind();
+	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());
+	std::vector<GLfloat> Converted;
+	Converted.reserve(v0.size() * 2);
+	for (auto &v : v0)
+	{
+		Converted.push_back(v.x);
+		Converted.push_back(v.y);
+	}
+	glUniform2fv(Position, v0.size(), Converted.data());
+}
+void Shader::SetUniform(std::string Name, std::vector<glm::dvec2> v0)
 {
 	Bind();
 	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());
@@ -344,6 +370,20 @@ void Shader::SetUniform(std::string Name, std::vector<glm::vec3> v0)
 	}
 	glUniform3fv(Position, v0.size(), Converted.data());
 }
+void Shader::SetUniform(std::string Name, std::vector<glm::dvec3> v0)
+{
+	Bind();
+	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());
+	std::vector<GLfloat> Converted;
+	Converted.reserve(v0.size() * 3);
+	for (auto &v : v0)
+	{
+		Converted.push_back(v.x);
+		Converted.push_back(v.y);
+		Converted.push_back(v.z);
+	}
+	glUniform3fv(Position, v0.size(), Converted.data());
+}
 void Shader::SetUniform(std::string Name, std::vector<glm::ivec3> v0)
 {
 	Bind();
@@ -374,6 +414,21 @@ void Shader::SetUniform(std::string Name, std::vector<glm::uvec3> v0)
 }
 
 void Shader::SetUniform(std::string Name, std::vector<glm::vec4> v0)
+{
+	Bind();
+	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());
+	std::vector<GLfloat> Converted;
+	Converted.reserve(v0.size() * 4);
+	for (auto &v : v0)
+	{
+		Converted.push_back(v.x);
+		Converted.push_back(v.y);
+		Converted.push_back(v.z);
+		Converted.push_back(v.w);
+	}
+	glUniform4fv(Position, v0.size(), Converted.data());
+}
+void Shader::SetUniform(std::string Name, std::vector<glm::dvec4> v0)
 {
 	Bind();
 	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());

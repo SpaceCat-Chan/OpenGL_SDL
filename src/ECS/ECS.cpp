@@ -25,16 +25,21 @@ void Render(Mesh &mesh, size_t Index, Shader &ShaderProgram, Camera &View, bool 
 	}
 	if (!OutsideLight)
 	{
-		ShaderProgram.SetUniform("u_Camera_LightPosition", glm::dvec3(0, 0, 0));
-		ShaderProgram.SetUniform("u_LightColor", glm::dvec3(0, 0, 0));
+		ShaderProgram.SetUniform("u_AmountOfLights", 0);
 	}
 	if (!OutsideTextures)
 	{
-		glBindTexture(GL_TEXTURE0, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		ShaderProgram.SetUniform("u_Diffuse", 0);
 		ShaderProgram.SetUniform("u_Specular", 0);
 		ShaderProgram.SetUniform("u_Bump", 0);
 		ShaderProgram.SetUniform("u_Disp", 0);
+		ShaderProgram.SetUniform("u_UseTextures", 0);
+	}
+	else
+	{
+		ShaderProgram.SetUniform("u_UseTextures", 1);
 	}
 	glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(Index), GL_UNSIGNED_INT, nullptr);
 }
@@ -162,8 +167,11 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 		{
 			constexpr size_t MaxLightAmount = 8;
 
-			std::vector<glm::vec3> LightPositions;
-			std::vector<glm::vec3> LightColors;
+			std::vector<glm::dvec3> LightPositions;
+			std::vector<glm::dvec3> LightColors;
+			std::vector<glm::dvec3> LightAttenuationPacked;
+			std::vector<glm::dvec3> LightDirection;
+			std::vector<double> LightCutoffAngle;
 
 			glm::dvec3 Min, Max;
 			glm::dmat4x4 MeshTransform;
@@ -214,6 +222,9 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 					{
 						LightPositions.push_back(LightPosition);
 						LightColors.push_back(Light.Color);
+						LightAttenuationPacked.push_back({Light.Constant, Light.Linear, Light.Quadratic});
+						LightDirection.push_back(Light.Direction);
+						LightCutoffAngle.push_back(Light.CutoffAngle);
 					}
 				}
 			}
@@ -225,19 +236,15 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 
 			GameWorld.ShaderProgram.SetUniform("u_Camera_LightPosition", LightPositions);
 			GameWorld.ShaderProgram.SetUniform("u_LightColor", LightColors);
+			GameWorld.ShaderProgram.SetUniform("u_LightAttenuationPacked", LightAttenuationPacked);
+			GameWorld.ShaderProgram.SetUniform("u_LightDirection", LightDirection);
+			GameWorld.ShaderProgram.SetUniform("u_LightCutoffAngle", LightCutoffAngle);
 			GameWorld.ShaderProgram.SetUniform("u_AmountOfLights", (GLuint)LightPositions.size());
 
-			if (GameWorld.TransformComponents[MeshIndex])
-			{
-				GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * MeshTransform);
-				GameWorld.ShaderProgram.SetUniform("u_Model", MeshTransform);
-				GameWorld.ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
-				Render(*GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true, true);
-			}
-			else
-			{
-				Render(*GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true);
-			}
+			GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * MeshTransform);
+			GameWorld.ShaderProgram.SetUniform("u_Model", MeshTransform);
+			GameWorld.ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
+			Render(*GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true, true);
 		}
 	}
 }
@@ -337,11 +344,11 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 
 	if (UserInput::Keyboard[SDL_SCANCODE_E].Active)
 	{
-		*GameWorld.PositionComponents[1] += glm::dvec3{0.2, 0, 0} * dt.count();
+		*GameWorld.PositionComponents[9] += glm::dvec3{0.2, 0, 0} * dt.count();
 	}
 	if (UserInput::Keyboard[SDL_SCANCODE_Q].Active)
 	{
-		*GameWorld.PositionComponents[2] += glm::dvec3{0, 0.05, 0} * dt.count();
+		*GameWorld.PositionComponents[14] += glm::dvec3{0, 0.05, 0} * dt.count();
 	}
 
 	if (UserInput::Keyboard[SDL_SCANCODE_LEFT].Clicked)

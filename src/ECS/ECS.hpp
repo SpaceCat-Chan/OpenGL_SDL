@@ -404,6 +404,33 @@ struct World
 		ChildrenComponents.at(ID) = nullptr;
 		UnusedIDs.push(ID);
 	}
+
+	size_t CloneEntity(size_t ID)
+	{
+		size_t Clone = NewEntity();
+		std::cout << "Old ID: " << ID << " New ID: " << Clone << '\n';
+		if(PositionComponents.at(ID))
+		{
+			PositionComponents.at(Clone) = std::make_shared<glm::dvec3>(*PositionComponents.at(ID));
+		}
+		if(MeshComponents.at(ID))
+		{
+			MeshComponents.at(Clone) = std::make_shared<Meshes>(*MeshComponents.at(ID));
+		}
+		if(LightComponents.at(ID))
+		{
+			LightComponents.at(Clone) = std::make_shared<LightInfo>(*LightComponents.at(ID));
+		}
+		if(TransformComponents.at(ID))
+		{
+			TransformComponents.at(Clone) = std::make_shared<::Transform>(*TransformComponents.at(ID));
+		}
+		if(ChildrenComponents.at(ID))
+		{
+			ChildrenComponents.at(Clone) = std::make_shared<::Children>(*ChildrenComponents.at(ID));
+		}
+		return Clone;
+	}
 };
 
 template <size_t Component, typename... Args>
@@ -436,6 +463,9 @@ std::enable_if_t<Component == World::Children, void> ActivateComponent(size_t ID
 	World.ChildrenComponents[ID] = std::make_shared<Children>(std::forward<Args>(args)...);
 }
 
+/**
+ * \brief a struct which contains information about an entities child-parent Relatioship
+ */
 struct Children
 {
 	long Parent = -1;

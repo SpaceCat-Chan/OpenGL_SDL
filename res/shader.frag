@@ -29,9 +29,13 @@ uniform sampler2D u_Bump;
 uniform sampler2D u_Disp;
 uniform bool u_UseBumpMap;
 uniform bool u_UseDispMap;
+uniform bool u_UseTextures;
 
 uniform uint u_AmountOfLights;
 uniform vec3 u_LightColor[MaxLightAmount];
+uniform vec3 u_LightAttenuationPacked[MaxLightAmount];
+uniform vec3 u_LightDirection[MaxLightAmount];
+uniform vec3 u_LightCutoffAngle[MaxLightAmount];
 
 vec2 CalculateDisplacement(vec3 Normal, vec2 UV);
 
@@ -49,7 +53,7 @@ void main(void) {
 
 
 	vec3 Tangent_Normal;
-	if(u_UseBumpMap) {
+	if(u_UseBumpMap && u_UseTextures) {
 		Tangent_Normal = texture(u_Bump, UV).xyz;
 		Tangent_Normal = Tangent_Normal * 2.0 - 1.0;
 		Tangent_Normal = vec3(Tangent_Normal.x, -Tangent_Normal.y, Tangent_Normal.z);
@@ -62,22 +66,39 @@ void main(void) {
 	vec3 LightColors;
 
 	for(int i=0; i < u_AmountOfLights; i++) {
-		vec3 Ambient = texture(u_Texture, UV).rgb * u_LightColor[i] * material.Ambient;
+		vec3 Ambient = u_LightColor[i] * material.Ambient;
 	
+		if(u_UseTextures)
+		{
+			Ambient *= texture(u_Texture, UV).rgb;
+		}
+
 		vec3 N = Tangent_Normal;
 		vec3 L = Fragment.Tangent_LightDirection[i];
 
 		float DiffusePower = max(dot(N, L), 0.0);
-		vec3 Diffuse = texture(u_Texture, UV).rgb * DiffusePower * u_LightColor[i] * material.Diffuse;
+		vec3 Diffuse = DiffusePower * u_LightColor[i] * material.Diffuse;
 	
+	
+		if(u_UseTextures)
+		{
+			Diffuse *= texture(u_Texture, UV).rgb;
+		}
 
 		vec3 P = normalize(Fragment.Tangent_CameraPosition - Fragment.Tangent_ModelPosition);
 		vec3 H = normalize(L + P);
 
 		float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
-		vec3 Specular = texture(u_Specular, UV).rgb * SpecularPower * u_LightColor[i] * material.Specular;
+		vec3 Specular = SpecularPower * u_LightColor[i] * material.Specular;
+	
+		if(u_UseTextures)
+		{
+			Specular *= texture(u_Specular, UV).rgb;
+		}
 
-		float Attenuation = 1 / Fragment.Tangent_LightDistance[i];
+		float Attenuation = 1 / (u_LightAttenuationPacked[i].x + 
+								u_LightAttenuationPacked[i].y * Fragment.Tangent_LightDistance[i] + 
+								u_LightAttenuationPacked[i].z * Fragment.Tangent_LightDistance[i] * Fragment.Tangent_LightDistance[i]);
 
 		Ambient *= Attenuation;
 		Diffuse *= Attenuation;
