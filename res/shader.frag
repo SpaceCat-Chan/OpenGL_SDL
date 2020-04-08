@@ -13,6 +13,7 @@ in VertexInfo {
 	vec3 Tangent_Normal;
 	vec3 Tangent_LightDirection[MaxLightAmount];
 	float Tangent_LightDistance[MaxLightAmount];
+	vec3 Tangent_LightPointingDirection[MaxLightAmount];
 	vec3 Tangent_CameraPosition;
 	vec2 UV;
 	mat3 TBN;
@@ -34,8 +35,9 @@ uniform bool u_UseTextures;
 uniform uint u_AmountOfLights;
 uniform vec3 u_LightColor[MaxLightAmount];
 uniform vec3 u_LightAttenuationPacked[MaxLightAmount];
-uniform vec3 u_LightDirection[MaxLightAmount];
-uniform vec3 u_LightCutoffAngle[MaxLightAmount];
+uniform float u_LightCutoffAngle[MaxLightAmount];
+
+uniform bool u_FullBright;
 
 vec2 CalculateDisplacement(vec3 Normal, vec2 UV);
 
@@ -65,37 +67,54 @@ void main(void) {
 
 	vec3 LightColors;
 
+	if(u_FullBright)
+	{
+		LightColors = vec3(1, 1, 1);
+		if(u_UseTextures)
+		{
+			LightColors *= texture(u_Texture, UV).rgb;
+		}
+	}
+
 	for(int i=0; i < u_AmountOfLights; i++) {
 		vec3 Ambient = u_LightColor[i] * material.Ambient;
+		vec3 P = normalize(Fragment.Tangent_CameraPosition - Fragment.Tangent_ModelPosition);
+
+		float Theta = dot(P, -Fragment.Tangent_LightPointingDirection[i]);
 	
+		vec3 Diffuse = vec3(0, 0, 0);
+		vec3 Specular = vec3(0, 0, 0);
+
 		if(u_UseTextures)
 		{
 			Ambient *= texture(u_Texture, UV).rgb;
 		}
 
-		vec3 N = Tangent_Normal;
-		vec3 L = Fragment.Tangent_LightDirection[i];
-
-		float DiffusePower = max(dot(N, L), 0.0);
-		vec3 Diffuse = DiffusePower * u_LightColor[i] * material.Diffuse;
-	
-	
-		if(u_UseTextures)
+		if(Theta > u_LightCutoffAngle[i])
 		{
-			Diffuse *= texture(u_Texture, UV).rgb;
-		}
+			vec3 N = Tangent_Normal;
+			vec3 L = Fragment.Tangent_LightDirection[i];
 
-		vec3 P = normalize(Fragment.Tangent_CameraPosition - Fragment.Tangent_ModelPosition);
-		vec3 H = normalize(L + P);
+			float DiffusePower = max(dot(N, L), 0.0);
+			Diffuse = DiffusePower * u_LightColor[i] * material.Diffuse;
 
-		float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
-		vec3 Specular = SpecularPower * u_LightColor[i] * material.Specular;
+
+			if(u_UseTextures)
+			{
+				Diffuse *= texture(u_Texture, UV).rgb;
+			}
+
+			vec3 H = normalize(L + P);
+
+			float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
+			Specular = SpecularPower * u_LightColor[i] * material.Specular;
 	
-		if(u_UseTextures)
-		{
-			Specular *= texture(u_Specular, UV).rgb;
+			if(u_UseTextures)
+			{
+				Specular *= texture(u_Specular, UV).rgb;
+			}
 		}
-
+		
 		float Attenuation = 1 / (u_LightAttenuationPacked[i].x + 
 								u_LightAttenuationPacked[i].y * Fragment.Tangent_LightDistance[i] + 
 								u_LightAttenuationPacked[i].z * Fragment.Tangent_LightDistance[i] * Fragment.Tangent_LightDistance[i]);

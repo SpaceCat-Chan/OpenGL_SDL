@@ -172,6 +172,7 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			std::vector<glm::dvec3> LightAttenuationPacked;
 			std::vector<glm::dvec3> LightDirection;
 			std::vector<double> LightCutoffAngle;
+			std::vector<int> LightType;
 
 			glm::dvec3 Min, Max;
 			glm::dmat4x4 MeshTransform;
@@ -189,61 +190,75 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			}
 			CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], MeshTransform, Min, Max);
 
-			for (size_t LightIndex = 0; LightIndex < GameWorld.PositionComponents.size() && LightPositions.size() < MaxLightAmount; LightIndex++)
+			if (GameWorld.MeshComponents[MeshIndex]->AffectedByLights)
 			{
-				if (GameWorld.LightComponents[LightIndex] == nullptr)
+				for (size_t LightIndex = 0; LightIndex < GameWorld.PositionComponents.size() && LightPositions.size() < MaxLightAmount; LightIndex++)
 				{
-					continue;
-				}
-				auto &Light = *GameWorld.LightComponents[LightIndex];
-				if (Light.LightType == LightInfo::Type::Direction)
-				{
-					//not implemented
-				}
-				else
-				{
-					glm::dvec3 LightPosition = Light.Position;
-					if (GameWorld.ChildrenComponents[LightIndex])
+					if (GameWorld.LightComponents[LightIndex] == nullptr)
 					{
-						LightPosition = GameWorld.ChildrenComponents[LightIndex]->CalculateFullTransform(GameWorld, LightIndex) * glm::dvec4(LightPosition, 1);
+						continue;
 					}
-					else if (GameWorld.TransformComponents[LightIndex])
+					auto &Light = *GameWorld.LightComponents[LightIndex];
+					if (Light.LightType == LightInfo::Type::Direction)
 					{
-						auto &Transform = *GameWorld.TransformComponents[LightIndex];
-						if (Transform.PositionSpace == Transform::Space::Model)
-						{
-							LightPosition = Transform(glm::dvec4(LightPosition, 1));
-						}
-					}
-					glm::dvec3 Position = glm::clamp(glm::dvec3(LightPosition), Min, Max);
-
-					bool WithinRange = glm::pow(Light.CutoffDistance, 2) > glm::pow(Position.x, 2) + glm::pow(Position.y, 2) + glm::pow(Position.z, 2);
-					if (WithinRange)
-					{
-						LightPositions.push_back(LightPosition);
+						LightPositions.push_back({0, 0, 0});
 						LightColors.push_back(Light.Color);
 						LightAttenuationPacked.push_back({Light.Constant, Light.Linear, Light.Quadratic});
 						LightDirection.push_back(Light.Direction);
 						LightCutoffAngle.push_back(Light.CutoffAngle);
+						LightType.push_back(1);
+					}
+					else
+					{
+						glm::dvec3 LightPosition = Light.Position;
+						if (GameWorld.ChildrenComponents[LightIndex])
+						{
+							LightPosition = GameWorld.ChildrenComponents[LightIndex]->CalculateFullTransform(GameWorld, LightIndex) * glm::dvec4(LightPosition, 1);
+						}
+						else if (GameWorld.TransformComponents[LightIndex])
+						{
+							auto &Transform = *GameWorld.TransformComponents[LightIndex];
+							if (Transform.PositionSpace == Transform::Space::Model)
+							{
+								LightPosition = Transform(glm::dvec4(LightPosition, 1));
+							}
+						}
+						glm::dvec3 Position = glm::clamp(glm::dvec3(LightPosition), Min, Max);
+
+						bool WithinRange = glm::pow(Light.CutoffDistance, 2) > glm::pow(Position.x, 2) + glm::pow(Position.y, 2) + glm::pow(Position.z, 2);
+						if (WithinRange)
+						{
+							LightPositions.push_back(LightPosition);
+							LightColors.push_back(Light.Color);
+							LightAttenuationPacked.push_back({Light.Constant, Light.Linear, Light.Quadratic});
+							LightDirection.push_back(Light.Direction);
+							LightCutoffAngle.push_back(Light.CutoffAngle);
+							LightType.push_back(0);
+						}
 					}
 				}
-			}
 
-			for (size_t i = 0; i < LightPositions.size(); i++)
-			{
-				LightPositions[i] = glm::dvec3(GameWorld.View.GetView() * glm::dvec4(LightPositions[i], 1));
-			}
+				for (size_t i = 0; i < LightPositions.size(); i++)
+				{
+					LightPositions[i] = glm::dvec3(GameWorld.View.GetView() * glm::dvec4(LightPositions[i], 1));
+					LightDirection[i] = glm::dvec3(GameWorld.View.GetView() * glm::dvec4(LightDirection[i], 0));
+					LightCutoffAngle[i] = glm::cos(LightCutoffAngle[i]);
+					//std::cout << "LightCutoffAngle[i]: " << LightCutoffAngle[i] << '[' << i << ']' << '\n';
+				}
 
-			GameWorld.ShaderProgram.SetUniform("u_Camera_LightPosition", LightPositions);
-			GameWorld.ShaderProgram.SetUniform("u_LightColor", LightColors);
-			GameWorld.ShaderProgram.SetUniform("u_LightAttenuationPacked", LightAttenuationPacked);
-			GameWorld.ShaderProgram.SetUniform("u_LightDirection", LightDirection);
-			GameWorld.ShaderProgram.SetUniform("u_LightCutoffAngle", LightCutoffAngle);
+				GameWorld.ShaderProgram.SetUniform("u_Camera_LightPosition", LightPositions);
+				GameWorld.ShaderProgram.SetUniform("u_LightColor", LightColors);
+				GameWorld.ShaderProgram.SetUniform("u_LightAttenuationPacked", LightAttenuationPacked);
+				GameWorld.ShaderProgram.SetUniform("u_LightDirection", LightDirection);
+				GameWorld.ShaderProgram.SetUniform("u_LightCutoffAngle", LightCutoffAngle);
+				GameWorld.ShaderProgram.SetUniform("u_LightType", LightType);
+			}
 			GameWorld.ShaderProgram.SetUniform("u_AmountOfLights", (GLuint)LightPositions.size());
 
 			GameWorld.ShaderProgram.SetUniform("MVP", GameWorld.View.GetMVP() * MeshTransform);
 			GameWorld.ShaderProgram.SetUniform("u_Model", MeshTransform);
 			GameWorld.ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
+			GameWorld.ShaderProgram.SetUniform("u_FullBright", !GameWorld.MeshComponents[MeshIndex]->AffectedByLights);
 			Render(*GameWorld.MeshComponents[MeshIndex], GameWorld.ShaderProgram, GameWorld.View, true, true);
 		}
 	}

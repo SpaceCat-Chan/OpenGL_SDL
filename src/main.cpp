@@ -48,6 +48,7 @@ MessageCallback(GLenum source,
 				const GLchar *message,
 				const void *userParam)
 {
+	SDL_SetRelativeMouseMode(SDL_FALSE);
 	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
 			(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
 			type, severity, message);
@@ -207,15 +208,23 @@ int main(int argc, char **argv)
 	GameWorld.TransformComponents[Utah]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
 
 	size_t Light = GameWorld.NewEntity();
+	ActivateComponent<World::Position>(Light, GameWorld, 0, 0.3, -1);
 	ActivateComponent<World::Light>(Light, GameWorld);
-	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Point;
-	GameWorld.LightComponents[Light]->Position = {0, 0.3, -1};
+	ActivateComponent<World::Mesh>(Light, GameWorld, Meshes::MeshType::Static, 2, false);
+	ActivateComponent<World::Transform>(Light, GameWorld);
+	GameWorld.TransformComponents[Light]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
+
+	Light = GameWorld.NewEntity();
+	ActivateComponent<World::Position>(Light, GameWorld, 0.5, 1.5, 0.5);
+	ActivateComponent<World::Light>(Light, GameWorld);
+	ActivateComponent<World::Mesh>(Light, GameWorld, Meshes::MeshType::Static, 2, false);
+	ActivateComponent<World::Transform>(Light, GameWorld);
+	GameWorld.TransformComponents[Light]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
 
 	Light = GameWorld.NewEntity();
 	ActivateComponent<World::Light>(Light, GameWorld);
-	ActivateComponent<World::Mesh>(Light, GameWorld, Meshes::MeshType::Static, 2, false);
-	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Point;
-	GameWorld.LightComponents[Light]->Position = {0.5, 1.5, 0.5};
+	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Direction;
+	GameWorld.LightComponents[Light]->Direction = {0.5, -0.5, 0.5};
 
 	while (!GameWorld.Quit)
 	{

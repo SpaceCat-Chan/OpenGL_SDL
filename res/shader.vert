@@ -23,6 +23,7 @@ out VertexInfo {
 	vec3 Tangent_Normal;
 	vec3 Tangent_LightDirection[MaxLightAmount];
 	float Tangent_LightDistance[MaxLightAmount];
+	vec3 Tangent_LightPointingDirection[MaxLightAmount];
 	vec3 Tangent_CameraPosition;
 	vec2 UV;
 	mat3 TBN;
@@ -39,6 +40,8 @@ uniform mat4 u_View;
 
 uniform uint u_AmountOfLights;
 uniform vec3 u_Camera_LightPosition[MaxLightAmount];
+uniform vec3 u_LightDirection[MaxLightAmount];
+uniform bool u_LightType[MaxLightAmount]; // false = point, true = directional
 
 void main(void) {
 
@@ -68,9 +71,18 @@ void main(void) {
 	vertex.Tangent_Normal = normalize(TBN * vec3(u_View * u_Model * vec4(in_Model_Normal, 0)));
 
 	for(int i=0; i < u_AmountOfLights; i++) {
-		vertex.Tangent_LightDirection[i] = u_Camera_LightPosition[i] - vec3(u_View * u_Model * vec4(in_Model_Position, 1));
-		vertex.Tangent_LightDistance[i] = length(vertex.Tangent_LightDirection[i]);
-		vertex.Tangent_LightDirection[i] = TBN * normalize(vertex.Tangent_LightDirection[i]);
+		if(u_LightType[i] == false)
+		{
+			vertex.Tangent_LightDirection[i] = u_Camera_LightPosition[i] - vec3(u_View * u_Model * vec4(in_Model_Position, 1));
+			vertex.Tangent_LightDistance[i] = length(vertex.Tangent_LightDirection[i]);
+			vertex.Tangent_LightDirection[i] = TBN * normalize(vertex.Tangent_LightDirection[i]);
+		}
+		else
+		{
+			vertex.Tangent_LightDirection[i] = TBN * normalize(-u_LightDirection[i]);
+			vertex.Tangent_LightDistance[i] = 0.01;
+		}
+		vertex.Tangent_LightPointingDirection[i] = TBN * normalize(u_LightDirection[i]);
 	}
 
 	vertex.Tangent_ModelPosition = TBN * (u_View * u_Model * vec4(in_Model_Position, 1)).xyz;

@@ -12,6 +12,9 @@
 
 #include "SDL-Helper-Libraries/sfstream/sfstream.hpp"
 
+template <typename T, typename U>
+inline constexpr bool is_same_v = std::is_same<T, U>::value;
+
 /**
  * \class Shader
  * \brief a class to handle shaders
@@ -99,9 +102,9 @@ public:
 	void SetUniform(std::string Name, glm::dmat4x3);
 	void SetUniform(std::string Name, glm::dmat3x4);
 	void SetUniform(std::string Name, glm::dmat4x4);
-	
+
 	void SetUniform(std::string Name, std::vector<GLfloat>);
-	void SetUniform(std::string Name, std::vector<std::conditional_t<!std::is_same_v<GLfloat, float>, float, double>>);
+	void SetUniform(std::string Name, std::vector<std::conditional_t<!is_same_v<GLfloat, float>, float, double>>);
 	void SetUniform(std::string Name, std::vector<GLint>);
 	void SetUniform(std::string Name, std::vector<GLuint>);
 	

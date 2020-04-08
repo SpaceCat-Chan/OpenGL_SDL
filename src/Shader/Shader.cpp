@@ -278,7 +278,7 @@ void Shader::SetUniform(std::string Name, std::vector<GLfloat> v0)
 	glUniform1fv(Position, v0.size(), v0.data());
 }
 
-void Shader::SetUniform(std::string Name, std::vector<std::conditional_t<!std::is_same_v<GLfloat, float>, float, double>> v0)
+void Shader::SetUniform(std::string Name, std::vector<std::conditional_t<!is_same_v<GLfloat, float>, float, double>> v0)
 {
 	Bind();
 	GLint Position = glGetUniformLocation(m_ShaderProgram, Name.c_str());
@@ -288,7 +288,7 @@ void Shader::SetUniform(std::string Name, std::vector<std::conditional_t<!std::i
 	{
 		Converted.push_back(v);
 	}
-	glUniform2fv(Position, v0.size(), Converted.data());
+	glUniform1fv(Position, v0.size(), Converted.data());
 }
 void Shader::SetUniform(std::string Name, std::vector<GLint> v0)
 {

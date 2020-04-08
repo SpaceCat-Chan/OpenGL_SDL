@@ -128,14 +128,14 @@ struct LightInfo
 	 * 
 	 * ignored for point lights with default cutoff angle
 	 */
-	glm::dvec3 Direction = {0, 0, 0};
+	glm::dvec3 Direction = {1, 0, 0};
 
 	/**
 	 * \brief the angle where the light gets cut off
 	 * 
 	 * ignored for directional lights
 	 */
-	double CutoffAngle = glm::pi<double>() * 2;
+	double CutoffAngle = glm::pi<double>() * 1;
 	/**
 	 * \brief the max distance the light can affect objects
 	 * 
