@@ -127,9 +127,9 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				pos2.z = MeshAttributes.vertices[Index2.vertex_index * 3 + 2];
 
 				if (
-					StoredIndexes[i][j * 3].normal_index != -1 &&
-					StoredIndexes[i][j * 3 + 1].normal_index != -1 &&
-					StoredIndexes[i][j * 3 + 2].normal_index != -1)
+					StoredIndexes[i][j * 3].normal_index == -1 ||
+					StoredIndexes[i][j * 3 + 1].normal_index == -1 ||
+					StoredIndexes[i][j * 3 + 2].normal_index == -1)
 				{
 					glm::dvec3 Normal = glm::cross(pos1 - pos0, pos2 - pos0);
 					MeshAttributes.normals.push_back(Normal.x);
@@ -141,7 +141,7 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 					Index2.normal_index = NewIndex;
 				}
 
-				glm::vec2 uv0 = {0, 0}, uv1 = {1, 0}, uv2 = {1, 0};
+				glm::vec2 uv0 = {0, 0}, uv1 = {1, 0}, uv2 = {0, 1};
 				if (
 					Index0.texcoord_index != -1 &&
 					Index1.texcoord_index != -1 &&
