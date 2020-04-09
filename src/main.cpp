@@ -220,12 +220,12 @@ int main(int argc, char **argv)
 	ActivateComponent<World::Mesh>(Light, GameWorld, Meshes::MeshType::Static, 2, false);
 	ActivateComponent<World::Transform>(Light, GameWorld);
 	GameWorld.TransformComponents[Light]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
-
+	/*
 	Light = GameWorld.NewEntity();
 	ActivateComponent<World::Light>(Light, GameWorld);
 	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Direction;
 	GameWorld.LightComponents[Light]->Direction = {0.5, -0.5, 0.5};
-
+	*/
 	while (!GameWorld.Quit)
 	{
 		auto Now = std::chrono::high_resolution_clock::now();

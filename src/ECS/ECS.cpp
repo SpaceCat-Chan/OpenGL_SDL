@@ -75,20 +75,23 @@ void Render(Meshes &Mesh, Shader &ShaderProgram, Camera &View, bool OutsideLight
 /**
  * \brief takes two vectors and scales them up by Amount relative to the point between them
  * 
- * \param Min one point to be scaled, will be changed by the scaling
- * \param Max one point to be scaled, will be changed by the scaling
+ * \param Min one point to be scaled
+ * \param Max one point to be scaled
  * 
  * \param Amount the amount to scale Min and Max by
+ * 
+ * \return the new Min and Max
  */
-void ExpandArea(glm::dvec3 Min, glm::dvec3 Max, double Amount = sqrt2)
+std::tuple<glm::dvec3, glm::dvec3> ExpandArea(glm::dvec3 Min, glm::dvec3 Max, double Amount = sqrt2)
 {
 	glm::dvec3 Mid = glm::mix(Min, Max, 0.5);
 	Min = Mid + ((Mid - Min) * Amount);
 	Max = Mid - ((Mid + Amount) * Amount);
+	return {Min, Max};
 }
 
 template <class MeshType>
-std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, TexturedMesh>::value, void> CalculateTransformedMinMax(MeshType &Mesh, glm::dmat4x4 Transform, glm::dvec3 &ResultMin, glm::dvec3 &ResultMax)
+std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, TexturedMesh>::value, std::tuple<glm::dvec3, glm::dvec3>> CalculateTransformedMinMax(MeshType &Mesh, glm::dmat4x4 Transform)
 {
 	std::array<glm::vec3, 6> VertexExtremes;
 
@@ -99,12 +102,12 @@ std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, T
 	VertexExtremes[5] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosZ), 1);
 	VertexExtremes[3] = Transform * glm::vec4(Mesh.GetMostExtremeVertex(Mesh::Side::PosX), 1);
 
-	ResultMin = {
+	glm::dvec3 ResultMin = {
 		VertexExtremes[0].x,
 		VertexExtremes[1].y,
 		VertexExtremes[2].z};
 
-	ResultMax = {
+	glm::dvec3 ResultMax = {
 		VertexExtremes[3].x,
 		VertexExtremes[4].y,
 		VertexExtremes[5].z};
@@ -141,20 +144,21 @@ std::enable_if_t<std::is_same<MeshType, Mesh>::value || std::is_same<MeshType, T
 			}
 		}
 
-		ExpandArea(ResultMin, ResultMax);
+		return ExpandArea(ResultMin, ResultMax);
 	}
+	return {ResultMin, ResultMax};
 }
 
 template <class MeshType>
-std::enable_if_t<std::is_same<MeshType, Meshes>::value, void> CalculateTransformedMinMax(MeshType Mesh, glm::dmat4x4 Transform, glm::dvec3 &ResultMin, glm::dvec3 &ResultMax)
+std::enable_if_t<std::is_same<MeshType, Meshes>::value, std::tuple<glm::dvec3, glm::dvec3>> CalculateTransformedMinMax(MeshType Mesh, glm::dmat4x4 Transform)
 {
 	if (Mesh.Type == Meshes::MeshType::Static)
 	{
-		CalculateTransformedMinMax(Meshes::StaticMeshes[Mesh.MeshIndex], Transform, ResultMin, ResultMax);
+		return CalculateTransformedMinMax(Meshes::StaticMeshes[Mesh.MeshIndex], Transform);
 	}
 	else
 	{
-		CalculateTransformedMinMax(Meshes::TexturedMeshes[Mesh.MeshIndex], Transform, ResultMin, ResultMax);
+		return CalculateTransformedMinMax(Meshes::TexturedMeshes[Mesh.MeshIndex], Transform);
 	}
 }
 
@@ -174,7 +178,6 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			std::vector<double> LightCutoffAngle;
 			std::vector<int> LightType;
 
-			glm::dvec3 Min, Max;
 			glm::dmat4x4 MeshTransform;
 			if (GameWorld.ChildrenComponents[MeshIndex])
 			{
@@ -188,7 +191,9 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			{
 				MeshTransform = glm::dmat4x4(1);
 			}
-			CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], MeshTransform, Min, Max);
+
+			//probably closest to multiple returns we get
+			auto [Min, Max] = CalculateTransformedMinMax(*GameWorld.MeshComponents[MeshIndex], MeshTransform);
 
 			if (GameWorld.MeshComponents[MeshIndex]->AffectedByLights)
 			{

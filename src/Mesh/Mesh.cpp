@@ -107,17 +107,11 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 
 			if (StoredIndexes[i][j * 3].vertex_index != -1 &&
 				StoredIndexes[i][j * 3 + 1].vertex_index != -1 &&
-				StoredIndexes[i][j * 3 + 2].vertex_index != -1 &&
-				StoredIndexes[i][j * 3].texcoord_index != -1 &&
-				StoredIndexes[i][j * 3 + 1].texcoord_index != -1 &&
-				StoredIndexes[i][j * 3 + 2].texcoord_index != -1 &&
-				StoredIndexes[i][j * 3].normal_index != -1 &&
-				StoredIndexes[i][j * 3 + 1].normal_index != -1 &&
-				StoredIndexes[i][j * 3 + 2].normal_index != -1)
+				StoredIndexes[i][j * 3 + 2].vertex_index != -1)
 			{
-				Index Index0 = StoredIndexes[i][j * 3];
-				Index Index1 = StoredIndexes[i][j * 3 + 1];
-				Index Index2 = StoredIndexes[i][j * 3 + 2];
+				Index &Index0 = StoredIndexes[i][j * 3];
+				Index &Index1 = StoredIndexes[i][j * 3 + 1];
+				Index &Index2 = StoredIndexes[i][j * 3 + 2];
 
 				glm::vec3 pos0, pos1, pos2;
 				pos0.x = MeshAttributes.vertices[Index0.vertex_index * 3];
@@ -132,15 +126,36 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				pos2.y = MeshAttributes.vertices[Index2.vertex_index * 3 + 1];
 				pos2.z = MeshAttributes.vertices[Index2.vertex_index * 3 + 2];
 
-				glm::vec2 uv0, uv1, uv2;
-				uv0.x = MeshAttributes.texcoords[Index0.texcoord_index * 2];
-				uv0.y = MeshAttributes.texcoords[Index0.texcoord_index * 2 + 1];
+				if (
+					StoredIndexes[i][j * 3].normal_index != -1 &&
+					StoredIndexes[i][j * 3 + 1].normal_index != -1 &&
+					StoredIndexes[i][j * 3 + 2].normal_index != -1)
+				{
+					glm::dvec3 Normal = glm::cross(pos1 - pos0, pos2 - pos0);
+					MeshAttributes.normals.push_back(Normal.x);
+					MeshAttributes.normals.push_back(Normal.y);
+					MeshAttributes.normals.push_back(Normal.z);
+					size_t NewIndex = (MeshAttributes.normals.size() - 2) / 3;
+					Index0.normal_index = NewIndex;
+					Index1.normal_index = NewIndex;
+					Index2.normal_index = NewIndex;
+				}
 
-				uv1.x = MeshAttributes.texcoords[Index1.texcoord_index * 2];
-				uv1.y = MeshAttributes.texcoords[Index1.texcoord_index * 2 + 1];
+				glm::vec2 uv0 = {0, 0}, uv1 = {1, 0}, uv2 = {1, 0};
+				if (
+					Index0.texcoord_index != -1 &&
+					Index1.texcoord_index != -1 &&
+					Index2.texcoord_index != -1)
+				{
+					uv0.x = MeshAttributes.texcoords[Index0.texcoord_index * 2];
+					uv0.y = MeshAttributes.texcoords[Index0.texcoord_index * 2 + 1];
 
-				uv2.x = MeshAttributes.texcoords[Index2.texcoord_index * 2];
-				uv2.y = MeshAttributes.texcoords[Index2.texcoord_index * 2 + 1];
+					uv1.x = MeshAttributes.texcoords[Index1.texcoord_index * 2];
+					uv1.y = MeshAttributes.texcoords[Index1.texcoord_index * 2 + 1];
+
+					uv2.x = MeshAttributes.texcoords[Index2.texcoord_index * 2];
+					uv2.y = MeshAttributes.texcoords[Index2.texcoord_index * 2 + 1];
+				}
 
 				glm::vec3 edge1 = pos1 - pos0;
 				glm::vec3 edge2 = pos2 - pos0;
@@ -265,8 +280,6 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].y);
 				BiTangentsAvaregedAndSplit.push_back(BiTangents[i][j].z);
 
-				
-
 				ExpandedIndexes[i].push_back((Positions.size() - 1) / 3);
 			}
 		}
@@ -347,33 +360,40 @@ void Mesh::LoadMesh(std::string Filename, std::vector<std::string> &DiffuseFiles
 			continue;
 		}
 
-		if(MostExtremeVertexes[Side::PosY].y < Vertex.y) {
+		if (MostExtremeVertexes[Side::PosY].y < Vertex.y)
+		{
 			MostExtremeVertexes[Side::PosY] = Vertex;
 		}
 
-		if(MostExtremeVertexes[Side::NegY].y > Vertex.y) {
+		if (MostExtremeVertexes[Side::NegY].y > Vertex.y)
+		{
 			MostExtremeVertexes[Side::NegY] = Vertex;
 		}
 
-		if(MostExtremeVertexes[Side::PosZ].z < Vertex.z) {
+		if (MostExtremeVertexes[Side::PosZ].z < Vertex.z)
+		{
 			MostExtremeVertexes[Side::PosZ] = Vertex;
 		}
 
-		if(MostExtremeVertexes[Side::NegZ].z > Vertex.z) {
+		if (MostExtremeVertexes[Side::NegZ].z > Vertex.z)
+		{
 			MostExtremeVertexes[Side::NegZ] = Vertex;
 		}
 
-		if(MostExtremeVertexes[Side::PosX].x < Vertex.x) {
+		if (MostExtremeVertexes[Side::PosX].x < Vertex.x)
+		{
 			MostExtremeVertexes[Side::PosX] = Vertex;
 		}
 
-		if(MostExtremeVertexes[Side::NegX].x > Vertex.x) {
+		if (MostExtremeVertexes[Side::NegX].x > Vertex.x)
+		{
 			MostExtremeVertexes[Side::NegX] = Vertex;
 		}
 	}
 }
 
-glm::vec3 Mesh::GetMostExtremeVertex(Side VertexSide) {
+glm::vec3 Mesh::GetMostExtremeVertex(Side VertexSide)
+{
 	return MostExtremeVertexes[VertexSide];
 }
 

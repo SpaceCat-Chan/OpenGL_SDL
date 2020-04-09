@@ -78,6 +78,8 @@ void main(void) {
 
 	for(int i=0; i < u_AmountOfLights; i++) {
 		vec3 Ambient = u_LightColor[i] * material.Ambient;
+
+
 		vec3 P = normalize(Fragment.Tangent_CameraPosition - Fragment.Tangent_ModelPosition);
 
 		float Theta = dot(P, -Fragment.Tangent_LightPointingDirection[i]);
@@ -89,7 +91,7 @@ void main(void) {
 		{
 			Ambient *= texture(u_Texture, UV).rgb;
 		}
-
+		
 		if(Theta > u_LightCutoffAngle[i])
 		{
 			vec3 N = Tangent_Normal;
@@ -98,11 +100,11 @@ void main(void) {
 			float DiffusePower = max(dot(N, L), 0.0);
 			Diffuse = DiffusePower * u_LightColor[i] * material.Diffuse;
 
-
 			if(u_UseTextures)
 			{
 				Diffuse *= texture(u_Texture, UV).rgb;
 			}
+
 
 			vec3 H = normalize(L + P);
 
@@ -122,6 +124,7 @@ void main(void) {
 		Ambient *= Attenuation;
 		Diffuse *= Attenuation;
 		Specular *= Attenuation;
+
 
 		LightColors += Ambient + Diffuse + Specular;
 	}
