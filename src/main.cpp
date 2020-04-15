@@ -69,6 +69,8 @@ int main(int argc, char **argv)
 	window.Load("Testy", 800, 600);
 	window.Bind();
 
+	
+
 	glewInit();
 
 	glEnable(GL_DEPTH_TEST);
@@ -80,6 +82,7 @@ int main(int argc, char **argv)
 	GameWorld.ShaderProgram.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
 	GameWorld.ShaderProgram.AddShaderFile("res/shader.frag", GL_FRAGMENT_SHADER);
 	GameWorld.ShaderProgram.Link();
+
 
 	std::cout << "res/cube.obj\n";
 	Meshes::TexturedMeshes.push_back(TexturedMesh("res/cube.obj"));
@@ -208,7 +211,7 @@ int main(int argc, char **argv)
 	GameWorld.TransformComponents[Utah]->Tranformations.push_back({Transform::Type::AutoPosition, glm::dmat4x4(1)});
 
 	size_t Light = GameWorld.NewEntity();
-	ActivateComponent<World::Position>(Light, GameWorld, 0, 0.3, -1);
+	ActivateComponent<World::Position>(Light, GameWorld, 0.5, 0.3, -1);
 	ActivateComponent<World::Light>(Light, GameWorld);
 	ActivateComponent<World::Mesh>(Light, GameWorld, Meshes::MeshType::Static, 2, false);
 	ActivateComponent<World::Transform>(Light, GameWorld);

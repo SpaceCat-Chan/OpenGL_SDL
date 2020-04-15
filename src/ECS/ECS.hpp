@@ -135,7 +135,7 @@ struct LightInfo
 	 * 
 	 * ignored for directional lights
 	 */
-	double CutoffAngle = glm::pi<double>() * 1;
+	double CutoffAngle = glm::pi<double>();
 	/**
 	 * \brief the max distance the light can affect objects
 	 * 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <tuple>
 
 #include <glm/ext.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -146,6 +147,7 @@ public:
 	 * \param MaxYaw the maximum allowed yaw value
 	 * \param MinRoll the minimum allowed roll value
 	 * \param MaxRoll the maximum allowed roll value
+	 * \param RespectRoll if Roll should be acounted for when changing Pitch and Yaw
 	 * 
 	 * Pitch will be clamped between MinPitch and MaxPitch
 	 * 
@@ -169,7 +171,8 @@ public:
 						double MinYaw = NaN,
 						double MaxYaw = NaN,
 						double MinRoll = NaN,
-						double MaxRoll = NaN);
+						double MaxRoll = NaN,
+						bool RespectRoll = true);
 
 	glm::dvec3 GetPosition();
 	/**

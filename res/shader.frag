@@ -13,7 +13,8 @@ in VertexInfo {
 	vec3 Tangent_Normal;
 	vec3 Tangent_LightDirection[MaxLightAmount];
 	float Tangent_LightDistance[MaxLightAmount];
-	vec3 Tangent_LightPointingDirection[MaxLightAmount];
+	vec3 Camera_LightPointingDirection[MaxLightAmount];
+	vec3 Camera_ModelPosition;
 	vec3 Tangent_CameraPosition;
 	vec2 UV;
 	mat3 TBN;
@@ -34,6 +35,7 @@ uniform bool u_UseTextures;
 
 uniform uint u_AmountOfLights;
 uniform vec3 u_LightColor[MaxLightAmount];
+uniform vec3 u_Camera_LightPosition[MaxLightAmount];
 uniform vec3 u_LightAttenuationPacked[MaxLightAmount];
 uniform float u_LightCutoffAngle[MaxLightAmount];
 
@@ -42,6 +44,10 @@ uniform bool u_FullBright;
 vec2 CalculateDisplacement(vec3 Normal, vec2 UV);
 
 layout(location = 0) out vec4 out_Color;
+
+float map(float value, float min1, float max1, float min2, float max2) {
+  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
 
 void main(void) {
 
@@ -82,8 +88,8 @@ void main(void) {
 
 		vec3 P = normalize(Fragment.Tangent_CameraPosition - Fragment.Tangent_ModelPosition);
 
-		float Theta = dot(P, -Fragment.Tangent_LightPointingDirection[i]);
-	
+		float Theta = dot(normalize(u_Camera_LightPosition[i] - Fragment.Camera_ModelPosition), -Fragment.Camera_LightPointingDirection[i]);
+
 		vec3 Diffuse = vec3(0, 0, 0);
 		vec3 Specular = vec3(0, 0, 0);
 
@@ -91,7 +97,7 @@ void main(void) {
 		{
 			Ambient *= texture(u_Texture, UV).rgb;
 		}
-		
+
 		if(Theta > u_LightCutoffAngle[i])
 		{
 			vec3 N = Tangent_Normal;
@@ -99,6 +105,7 @@ void main(void) {
 
 			float DiffusePower = max(dot(N, L), 0.0);
 			Diffuse = DiffusePower * u_LightColor[i] * material.Diffuse;
+
 
 			if(u_UseTextures)
 			{
@@ -110,7 +117,7 @@ void main(void) {
 
 			float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
 			Specular = SpecularPower * u_LightColor[i] * material.Specular;
-	
+
 			if(u_UseTextures)
 			{
 				Specular *= texture(u_Specular, UV).rgb;
