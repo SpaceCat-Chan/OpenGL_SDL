@@ -97,8 +97,9 @@ int main(int argc, char **argv)
 		std::cout << "\n\nres/LightCube.obj\n";
 		Mesh Utah;
 		std::vector<std::string> a;
-		Utah.LoadMesh("res/LightCube.obj", a, a, a, a);
+		Utah.LoadMesh("res/LightCube.obj", a, a, a, a, true);
 		Meshes::StaticMeshes.push_back(std::move(Utah));
+		Meshes::SetupOctree(Meshes::MeshType::Static, 2);
 	}
 
 	enum
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
 
 	auto LastTime = std::chrono::high_resolution_clock::now();
 
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	//SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -149,7 +150,7 @@ int main(int argc, char **argv)
 		    Meshes::MeshType::Textured,
 		    BrickWall3DMesh);
 
-		ActivateComponent<World::Position>(CubeTwo, GameWorld, 0, 2, 0);
+		ActivateComponent<World::Position>(CubeTwo, GameWorld, 3, 3, 3);
 		ActivateComponent<World::Transform>(CubeTwo, GameWorld);
 		GameWorld[CubeTwo].Transform()->Tranformations.push_back(
 		    {Transform::Type::AutoPosition, glm::dmat4x4(1)});
@@ -275,17 +276,36 @@ int main(int argc, char **argv)
 	GameWorld.LightComponents[Light]->LightType = LightInfo::Type::Direction;
 	GameWorld.LightComponents[Light]->Direction = {0.5, -0.5, 0.5};
 	*/
+	constexpr DSeconds TickRate{1.0 / 60.0};
+	DSeconds TimeSinceLastUpdate{0};
+
 	while (!GameWorld.Quit)
 	{
 		auto Now = std::chrono::high_resolution_clock::now();
 		DSeconds dt = std::chrono::duration_cast<DSeconds>(Now - LastTime);
 
+		TimeSinceLastUpdate += dt;
+
+		for (; TimeSinceLastUpdate > TickRate; TimeSinceLastUpdate -= TickRate)
+		{
+			for (auto &RunGroup : GameWorld.UpdateSystems)
+			{
+				for (auto &[Active, System] : RunGroup)
+				{
+					if (Active)
+					{
+						System(GameWorld, TickRate);
+					}
+				}
+			}
+		}
+
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		for (size_t i = 0; i < GameWorld.Systems.size(); i++)
+		for (size_t i = 0; i < GameWorld.RenderSystems.size(); i++)
 		{
-			GameWorld.Systems[i](GameWorld, dt);
+			GameWorld.RenderSystems[i](GameWorld, TimeSinceLastUpdate);
 		}
 
 		SDL_GL_SwapWindow(window);

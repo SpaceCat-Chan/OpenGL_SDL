@@ -69,11 +69,13 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 	if (UserInput::Keyboard[SDL_SCANCODE_E].Active)
 	{
 		*GameWorld[9].Position() += glm::dvec3{0.2, 0, 0} * dt.count();
+		GameWorld.UpdatedEntities.push_back(9);
 	}
 	if (UserInput::Keyboard[SDL_SCANCODE_Q].Active)
 	{
 		*GameWorld[14].Position() +=
 		    glm::dvec3{0, 0.05, 0} * dt.count();
+		GameWorld.UpdatedEntities.push_back(14);
 	}
 
 	if (UserInput::Keyboard[SDL_SCANCODE_LEFT].Clicked)

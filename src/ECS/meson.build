@@ -4,4 +4,5 @@ sources += ['ECS/Components/Meshes/Meshes.cpp',
 'ECS/Systems/Render/Render.cpp',
 'ECS/Systems/UserInput/UserInput.cpp',
 'ECS/Systems/AutoPosition/AutoPosition.cpp',
+'ECS/Systems/Collision/Collision.cpp',
 'ECS/TransformedMinMax.cpp']

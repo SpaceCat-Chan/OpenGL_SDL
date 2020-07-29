@@ -149,9 +149,11 @@ class Octree
 	std::function<std::array<glm::dvec3, 2>(size_t)> m_GetAABB;
 
 	public:
-	Octree(decltype(m_GetAABB) GetAABB) : m_GetAABB(GetAABB)
+	Octree(decltype(m_GetAABB) GetAABB, double Radius = 1000) : m_GetAABB(GetAABB)
 	{
 		m_Root = std::make_unique<Detail::Octree_Impl>(GetAABB);
+		m_Root->m_TopLevel = this;
+		m_Root->m_Radius = Radius;
 	}
 
 	Octree(const Octree &copy)

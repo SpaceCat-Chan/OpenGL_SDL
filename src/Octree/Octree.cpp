@@ -13,7 +13,10 @@ CalcSection(glm::dvec3 Center, double Radius, std::array<glm::dvec3, 2> AABB)
 	}
 	if ((AABB[0].x < Center.x && AABB[1].x > Center.x) ||
 	    (AABB[0].y < Center.y && AABB[1].y > Center.y) ||
-	    (AABB[0].z < Center.z && AABB[1].z > Center.z))
+	    (AABB[0].z < Center.z && AABB[1].z > Center.z) || 
+		(AABB[1].x < Center.x && AABB[0].x > Center.x) ||
+	    (AABB[1].y < Center.y && AABB[0].y > Center.y) ||
+	    (AABB[1].z < Center.z && AABB[0].z > Center.z))
 	{
 		return Detail::OverCenter;
 	}

@@ -1,8 +1,8 @@
 #include "TexturedMesh.hpp"
 
-TexturedMesh::TexturedMesh(std::string Filename)
+TexturedMesh::TexturedMesh(std::string Filename, bool SaveToCPU)
 {
-	Load(Filename);
+	Load(Filename, SaveToCPU);
 }
 
 TexturedMesh::TexturedMesh(TexturedMesh &&Move)
@@ -35,7 +35,7 @@ const TexturedMesh &TexturedMesh::operator=(TexturedMesh &&Move)
 	return *this;
 }
 
-void TexturedMesh::Load(std::string Filename)
+void TexturedMesh::Load(std::string Filename, bool SaveToCPU)
 {
 	m_Diffuse.clear();
 	m_Specular.clear();
@@ -46,7 +46,7 @@ void TexturedMesh::Load(std::string Filename)
 
 	std::vector<std::string> DiffuseFiles, SpecularFiles, BumpFiles, DispFiles;
 
-	m_Mesh.LoadMesh(Filename, DiffuseFiles, SpecularFiles, BumpFiles, DispFiles);
+	m_Mesh.LoadMesh(Filename, DiffuseFiles, SpecularFiles, BumpFiles, DispFiles, SaveToCPU);
 
 	for (size_t i = 0; i < DiffuseFiles.size(); i++)
 	{

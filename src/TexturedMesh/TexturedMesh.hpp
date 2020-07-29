@@ -34,11 +34,13 @@ class TexturedMesh {
 	friend void Render(TexturedMesh &Mesh, Shader &ShaderProgram, Camera &View, bool OutsideLight, bool OutsideMesh);
 
 	public:
+	const std::vector<glm::dvec3> &Triangles() { return m_Mesh.Triangles(); }
+
 	TexturedMesh() = default;
 	/**
 	 * \brief loads Mesh from file
 	 */
-	TexturedMesh(std::string Filename);
+	TexturedMesh(std::string Filename, bool SaveToCPU=false);
 
 	TexturedMesh(const TexturedMesh &Copy) = delete;
 	TexturedMesh(TexturedMesh &&Move);
@@ -46,7 +48,7 @@ class TexturedMesh {
 	const TexturedMesh &operator=(const TexturedMesh &Copy) = delete;
 	const TexturedMesh &operator=(TexturedMesh &&Move);
 
-	void Load(std::string Filename);
+	void Load(std::string Filename, bool SaveToCPU=false);
 
 	/**
 	 * \brief binds the given mesh index, does not bind textures

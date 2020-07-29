@@ -24,6 +24,7 @@
 #include "Systems/AutoPosition/AutoPosition.hpp"
 #include "Systems/Render/Render.hpp"
 #include "Systems/UserInput/UserInput.hpp"
+#include "Systems/Collision/Collision.hpp"
 
 #include "Common.hpp"
 
@@ -89,11 +90,26 @@ struct World
 		operator=(const EntityReferanceWrapper &) = delete;
 		EntityReferanceWrapper &operator=(EntityReferanceWrapper &&) = delete;
 
-		std::optional<glm::dvec3> &Position() { return m_World->PositionComponents[m_Index]; }
-		std::optional<Meshes> &Mesh() { return m_World->MeshComponents[m_Index]; }
-		std::optional<LightInfo> &Light() { return m_World->LightComponents[m_Index]; }
-		std::optional<::Transform> &Transform() { return m_World->TransformComponents[m_Index]; }
-		std::optional<::Children> &Children() { return m_World->ChildrenComponents[m_Index]; }
+		std::optional<glm::dvec3> &Position()
+		{
+			return m_World->PositionComponents[m_Index];
+		}
+		std::optional<Meshes> &Mesh()
+		{
+			return m_World->MeshComponents[m_Index];
+		}
+		std::optional<LightInfo> &Light()
+		{
+			return m_World->LightComponents[m_Index];
+		}
+		std::optional<::Transform> &Transform()
+		{
+			return m_World->TransformComponents[m_Index];
+		}
+		std::optional<::Children> &Children()
+		{
+			return m_World->ChildrenComponents[m_Index];
+		}
 
 		void reset()
 		{
@@ -115,29 +131,44 @@ struct World
 	std::list<size_t> UpdatedEntities;
 
 	Octree CollisionOctree{[this](size_t id) -> std::array<glm::dvec3, 2> {
-		glm::dmat4x4 MeshTransform;
 		auto &GameWorld = *this;
-		if (GameWorld[id].Children())
+		if (GameWorld[id].Mesh())
 		{
-			MeshTransform =
-			    GameWorld[id].Children()->CalculateFullTransform(GameWorld, id);
-		}
-		else if (GameWorld[id].Transform())
-		{
-			MeshTransform = GameWorld[id].Transform()->CalculateFull();
+			glm::dmat4x4 MeshTransform;
+			if (GameWorld[id].Children())
+			{
+				MeshTransform =
+				    GameWorld[id].Children()->CalculateFullTransform(
+				        GameWorld,
+				        id);
+			}
+			else if (GameWorld[id].Transform())
+			{
+				MeshTransform = GameWorld[id].Transform()->CalculateFull();
+			}
+			else
+			{
+				MeshTransform = glm::dmat4x4(1);
+			}
+			auto [Min, Max] = CalculateTransformedMinMax(
+			    *GameWorld[id].Mesh(),
+			    MeshTransform);
+			return {Min, Max};
 		}
 		else
 		{
-			MeshTransform = glm::dmat4x4(1);
+			return
+			{
+				glm::dvec3{-1.0, -1.0, -1.0}, glm::dvec3{ 1.0, 1.0, 1.0 }
+			};
 		}
-		auto [Min, Max] =
-		    CalculateTransformedMinMax(*GameWorld[id].Mesh(), MeshTransform);
-		return {Min, Max};
 	}};
 
-	std::vector<std::function<Error(World &, DSeconds)>> Systems{
-	    UserInputSystem,
-	    AutoPositionSystem,
+	std::vector<
+	    std::vector<std::pair<bool, std::function<Error(World &, DSeconds)>>>>
+	    UpdateSystems{{{true, UserInputSystem}}, {{true, AutoPositionSystem}}, {{true, UpdateOctree}}};
+
+	std::vector<std::function<Error(World &, DSeconds)>> RenderSystems{
 	    RenderSystem};
 
 	Shader ShaderProgram;
@@ -163,6 +194,8 @@ struct World
 			LightComponents.push_back(std::nullopt);
 			TransformComponents.push_back(std::nullopt);
 			ChildrenComponents.push_back(std::nullopt);
+			CollisionOctree.Add(PositionComponents.size()-1);
+			UpdatedEntities.push_back(PositionComponents.size()-1);
 			return PositionComponents.size() - 1;
 		}
 	}
