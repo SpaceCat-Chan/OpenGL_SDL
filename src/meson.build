@@ -14,6 +14,7 @@ sources = [
     '../SDL-Helper-Libraries/sfstream/sfstream.cpp',
 ]
 
+subdir('ECS')
 
 depends = [
     dependency('SDL2'),
