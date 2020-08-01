@@ -2,8 +2,8 @@
 
 #include "Common.hpp"
 
-class World;
-class Error;
+struct World;
+struct Error;
 
 /**
  * \brief the system responsible for updating Matrixes of type

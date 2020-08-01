@@ -47,12 +47,20 @@ Error Children::EnforceCorrectness(World &GameWorld, size_t Me)
 	return Error(Error::Type::None);
 }
 
-glm::dmat4x4 Children::CalculateFullTransform(World &GameWorld, size_t Me)
+glm::dmat4x4
+Children::CalculateFullTransform(World &GameWorld, size_t Me, bool UseBackup)
 {
-	glm::dmat4x4 Parent = CalculateParentTransform(GameWorld);
-	if (GameWorld[Me].Transform())
+	glm::dmat4x4 Parent = CalculateParentTransform(GameWorld, UseBackup);
+	if (GameWorld[Me].Transform() && !UseBackup)
 	{
+
 		return Parent * GameWorld[Me].Transform()->CalculateFull();
+	}
+	else if (
+	    UseBackup && GameWorld[Me].BasicBackup() &&
+	    GameWorld[Me].BasicBackup()->Transform_)
+	{
+		return Parent * GameWorld[Me].BasicBackup()->Transform_->CalculateFull();
 	}
 	else
 	{
@@ -60,7 +68,8 @@ glm::dmat4x4 Children::CalculateFullTransform(World &GameWorld, size_t Me)
 	}
 }
 
-glm::dmat4x4 Children::CalculateParentTransform(World &GameWorld)
+glm::dmat4x4
+Children::CalculateParentTransform(World &GameWorld, bool UseBackup)
 {
 	if (Parent == -1)
 	{
@@ -72,5 +81,6 @@ glm::dmat4x4 Children::CalculateParentTransform(World &GameWorld)
 	}
 	return GameWorld[Parent].Children()->CalculateFullTransform(
 	    GameWorld,
-	    Parent);
+	    Parent,
+	    UseBackup);
 }

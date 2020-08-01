@@ -65,6 +65,8 @@ struct Meshes
 	constexpr Meshes &operator=(const Meshes &) = default;
 	constexpr Meshes &operator=(Meshes &&) = default;
 
+	static std::array<glm::dvec3,3> Custom;
+
 	static void SetupOctree(MeshType Type, size_t index)
 	{
 		StaticOctrees.resize(StaticMeshes.size());
@@ -80,6 +82,10 @@ struct Meshes
 					        StaticMeshes[index].Triangles()[id * 3],
 					        StaticMeshes[index].Triangles()[id * 3 + 1],
 					        StaticMeshes[index].Triangles()[id * 3 + 2]};
+						if(id == size_t(-1))
+						{
+							Triangle = Meshes::Custom;
+						}
 					    glm::dvec3 Min = {
 					        std::min(
 					            std::min(Triangle[0].x, Triangle[1].x),

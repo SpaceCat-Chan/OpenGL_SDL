@@ -5,8 +5,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/ext.hpp>
 
-class World;
-class Error;
+struct World;
+struct Error;
 
 /**
  * \brief a struct which contains information about an entities child-parent
@@ -24,7 +24,8 @@ struct Children
 	 *
 	 * \return the Transform matrix of the parent
 	 */
-	glm::dmat4x4 CalculateParentTransform(World &GameWorld);
+	glm::dmat4x4
+	CalculateParentTransform(World &GameWorld, bool UseBackup = false);
 
 	/**
 	 * \brief return this entities transform matrix multipled with the parents
@@ -34,7 +35,8 @@ struct Children
 	 *
 	 * \return this entities full transform matrix
 	 */
-	glm::dmat4x4 CalculateFullTransform(World &GameWorld, size_t Me);
+	glm::dmat4x4
+	CalculateFullTransform(World &GameWorld, size_t Me, bool UseBackup = false);
 
 	/**
 	 * \brief makes sure that all other entities have this entity listed in the

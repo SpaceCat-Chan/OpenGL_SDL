@@ -2,8 +2,8 @@
 
 #include "Common.hpp"
 
-class World;
-class Error;
+struct World;
+struct Error;
 
 
 Error RenderSystem(World &GameWorld, DSeconds dt);

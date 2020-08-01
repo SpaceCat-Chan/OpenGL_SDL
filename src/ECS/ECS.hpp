@@ -15,6 +15,7 @@
 #include "Octree/Octree.hpp"
 #include "TexturedMesh/TexturedMesh.hpp"
 
+#include "Components/BasicBackup/BasicBackup.hpp"
 #include "Components/Children/Children.hpp"
 #include "Components/LightInfo/LightInfo.hpp"
 #include "Components/Meshes/Meshes.hpp"
@@ -22,9 +23,10 @@
 #include "Components/UserInput/UserInput.hpp"
 
 #include "Systems/AutoPosition/AutoPosition.hpp"
+#include "Systems/BasicBackup/BasicBackup.hpp"
+#include "Systems/Collision/Collision.hpp"
 #include "Systems/Render/Render.hpp"
 #include "Systems/UserInput/UserInput.hpp"
-#include "Systems/Collision/Collision.hpp"
 
 #include "Common.hpp"
 
@@ -56,7 +58,8 @@ struct World
 		Mesh,
 		Light,
 		Transform,
-		Children
+		Children,
+		BasicBackup
 	};
 
 	static constexpr size_t ComponentAmount = 5;
@@ -67,6 +70,7 @@ struct World
 	std::vector<std::optional<LightInfo>> LightComponents;
 	std::vector<std::optional<::Transform>> TransformComponents;
 	std::vector<std::optional<::Children>> ChildrenComponents;
+	std::vector<std::optional<::BasicBackup>> BackupComponents;
 
 	public:
 	class EntityReferanceWrapper
@@ -79,7 +83,7 @@ struct World
 			m_Index = Index;
 		}
 
-		friend class ::World;
+		friend struct ::World;
 
 		public:
 		EntityReferanceWrapper() = delete;
@@ -110,6 +114,10 @@ struct World
 		{
 			return m_World->ChildrenComponents[m_Index];
 		}
+		std::optional<::BasicBackup> &BasicBackup()
+		{
+			return m_World->BackupComponents[m_Index];
+		}
 
 		void reset()
 		{
@@ -118,6 +126,7 @@ struct World
 			Light() = std::nullopt;
 			Transform() = std::nullopt;
 			Children() = std::nullopt;
+			BasicBackup() = std::nullopt;
 		}
 	};
 
@@ -157,16 +166,18 @@ struct World
 		}
 		else
 		{
-			return
-			{
-				glm::dvec3{-1.0, -1.0, -1.0}, glm::dvec3{ 1.0, 1.0, 1.0 }
-			};
+			return {glm::dvec3{-1.0, -1.0, -1.0}, glm::dvec3{1.0, 1.0, 1.0}};
 		}
 	}};
 
 	std::vector<
 	    std::vector<std::pair<bool, std::function<Error(World &, DSeconds)>>>>
-	    UpdateSystems{{{true, UserInputSystem}}, {{true, AutoPositionSystem}}, {{true, UpdateOctree}}};
+	    UpdateSystems{
+	        {{true, BasicBackupSystem}},
+	        {{true, UserInputSystem}},
+	        {{true, AutoPositionSystem}},
+	        {{true, UpdateOctree}},
+			{{true, HandleCollisions}}};
 
 	std::vector<std::function<Error(World &, DSeconds)>> RenderSystems{
 	    RenderSystem};
@@ -194,8 +205,9 @@ struct World
 			LightComponents.push_back(std::nullopt);
 			TransformComponents.push_back(std::nullopt);
 			ChildrenComponents.push_back(std::nullopt);
-			CollisionOctree.Add(PositionComponents.size()-1);
-			UpdatedEntities.push_back(PositionComponents.size()-1);
+			BackupComponents.push_back(::BasicBackup{});
+			CollisionOctree.Add(PositionComponents.size() - 1);
+			UpdatedEntities.push_back(PositionComponents.size() - 1);
 			return PositionComponents.size() - 1;
 		}
 	}
@@ -215,6 +227,7 @@ struct World
 		LightComponents.at(Clone) = LightComponents.at(ID);
 		TransformComponents.at(Clone) = TransformComponents.at(ID);
 		ChildrenComponents.at(Clone) = ChildrenComponents.at(ID);
+		BackupComponents.at(Clone) = BackupComponents.at(ID);
 		return Clone;
 	}
 };

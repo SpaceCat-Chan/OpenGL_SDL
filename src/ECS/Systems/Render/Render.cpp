@@ -118,10 +118,12 @@ void Render(
 }
 
 // ForceMainShader is there for future use
-void Render(World &GameWorld, bool ForceMainShader = false)
+void Render(
+    World &GameWorld,
+    bool ForceMainShader = false,
+    DSeconds dt = DSeconds(1))
 {
-	for (size_t MeshIndex = 0; MeshIndex < GameWorld.size();
-	     MeshIndex++)
+	for (size_t MeshIndex = 0; MeshIndex < GameWorld.size(); MeshIndex++)
 	{
 		if (GameWorld[MeshIndex].Mesh())
 		{
@@ -134,27 +136,50 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			std::vector<double> LightCutoffAngle;
 			std::vector<int> LightType;
 
-			glm::dmat4x4 MeshTransform;
+			glm::dmat4x4 MeshTransform, OldMeshTransform;
 			if (GameWorld[MeshIndex].Children())
 			{
 				MeshTransform =
-				    GameWorld[MeshIndex].Children()
-				        ->CalculateFullTransform(GameWorld, MeshIndex);
+				    GameWorld[MeshIndex].Children()->CalculateFullTransform(
+				        GameWorld,
+				        MeshIndex);
+				OldMeshTransform =
+				    GameWorld[MeshIndex].Children()->CalculateFullTransform(
+				        GameWorld,
+				        MeshIndex,
+				        true);
 			}
 			else if (GameWorld[MeshIndex].Transform())
 			{
 				MeshTransform =
 				    GameWorld[MeshIndex].Transform()->CalculateFull();
+				if (GameWorld[MeshIndex].BasicBackup()->Transform_)
+				{
+					OldMeshTransform = GameWorld[MeshIndex]
+					                       .BasicBackup()
+					                       ->Transform_->CalculateFull();
+				}
+				else
+				{
+					OldMeshTransform = glm::dmat4{1};
+				}
 			}
 			else
 			{
 				MeshTransform = glm::dmat4x4(1);
+				OldMeshTransform = glm::dmat4{1};
 			}
 
 			// probably closest to multiple returns we get
-			auto [Min, Max] = CalculateTransformedMinMax(
+			auto [NewMin, NewMax] = CalculateTransformedMinMax(
 			    *GameWorld[MeshIndex].Mesh(),
 			    MeshTransform);
+			auto [OldMin, OldMax] = CalculateTransformedMinMax(
+			    *GameWorld[MeshIndex].Mesh(),
+			    OldMeshTransform);
+
+			auto Min = glm::mix(OldMin, NewMin, dt.count());
+			auto Max = glm::mix(OldMax, NewMax, dt.count());
 
 			if (GameWorld[MeshIndex].Mesh()->AffectedByLights)
 			{
@@ -183,12 +208,12 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 						glm::dvec3 LightPosition = Light.Position;
 						if (GameWorld[LightIndex].Children())
 						{
-							LightPosition =
-							    GameWorld[LightIndex].Children()
-							        ->CalculateFullTransform(
-							            GameWorld,
-							            LightIndex) *
-							    glm::dvec4(LightPosition, 1);
+							LightPosition = GameWorld[LightIndex]
+							                    .Children()
+							                    ->CalculateFullTransform(
+							                        GameWorld,
+							                        LightIndex) *
+							                glm::dvec4(LightPosition, 1);
 						}
 						else if (GameWorld[LightIndex].Transform())
 						{
@@ -256,9 +281,16 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 			    (GLuint)LightPositions.size());
 
 			GameWorld.ShaderProgram.SetUniform(
+			    "MVP_Old",
+			    GameWorld.View.GetMVP() * OldMeshTransform);
+			GameWorld.ShaderProgram.SetUniform(
 			    "MVP",
 			    GameWorld.View.GetMVP() * MeshTransform);
+			GameWorld.ShaderProgram.SetUniform("u_Model_Old", OldMeshTransform);
 			GameWorld.ShaderProgram.SetUniform("u_Model", MeshTransform);
+			GameWorld.ShaderProgram.SetUniform(
+			    "u_Lerp_Value",
+			    GLfloat(dt.count()));
 			GameWorld.ShaderProgram.SetUniform("u_Color", glm::dvec3(1, 1, 1));
 			GameWorld.ShaderProgram.SetUniform(
 			    "u_FullBright",
@@ -275,6 +307,6 @@ void Render(World &GameWorld, bool ForceMainShader = false)
 
 Error RenderSystem(World &GameWorld, DSeconds dt)
 {
-	Render(GameWorld);
+	Render(GameWorld, false, dt);
 	return Error(Error::Type::None);
 }

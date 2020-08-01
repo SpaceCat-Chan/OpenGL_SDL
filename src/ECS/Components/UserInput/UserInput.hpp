@@ -7,8 +7,8 @@
 
 #include "Common.hpp"
 
-class World;
-class Error;
+struct World;
+struct Error;
 
 /**
  * \brief structure for containing user input

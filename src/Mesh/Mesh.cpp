@@ -137,28 +137,28 @@ void Mesh::LoadMesh(
 			{
 				m_Triangles.push_back(
 				    {MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3].normal_index * 3],
+				         [Shapes[i].mesh.indices[j * 3].vertex_index * 3],
 				     MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3].normal_index * 3 + 1],
+				         [Shapes[i].mesh.indices[j * 3].vertex_index * 3 + 1],
 				     MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3].normal_index * 3 + 2]});
+				         [Shapes[i].mesh.indices[j * 3].vertex_index * 3 + 2]});
 				m_Triangles.push_back(
 				    {MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3 + 1].normal_index * 3],
+				         [Shapes[i].mesh.indices[j * 3 + 1].vertex_index * 3],
 				     MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3 + 1].normal_index * 3 +
+				         [Shapes[i].mesh.indices[j * 3 + 1].vertex_index * 3 +
 				          1],
 				     MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3 + 1].normal_index * 3 +
+				         [Shapes[i].mesh.indices[j * 3 + 1].vertex_index * 3 +
 				          2]});
 				m_Triangles.push_back(
 				    {MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3 + 2].normal_index * 3],
+				         [Shapes[i].mesh.indices[j * 3 + 2].vertex_index * 3],
 				     MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3 + 2].normal_index * 3 +
+				         [Shapes[i].mesh.indices[j * 3 + 2].vertex_index * 3 +
 				          1],
 				     MeshAttributes.vertices
-				         [Shapes[i].mesh.indices[j * 3 + 2].normal_index * 3 +
+				         [Shapes[i].mesh.indices[j * 3 + 2].vertex_index * 3 +
 				          2]});
 			}
 

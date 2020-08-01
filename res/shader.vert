@@ -35,9 +35,12 @@ out VertexInfo {
 
 
 uniform mat4 MVP;
+uniform mat4 MVP_Old;
 uniform mat4 u_Model;
+uniform mat4 u_Model_Old;
 uniform mat4 u_View;
 
+uniform float u_Lerp_Value;
 
 uniform uint u_AmountOfLights;
 uniform vec3 u_Camera_LightPosition[MaxLightAmount];
@@ -50,6 +53,10 @@ void main(void) {
 	vec3 T = normalize(vec3(u_View * (u_Model * vec4(in_Model_Tangent, 0.0))));
 	vec3 B = normalize(vec3(u_View * (u_Model * vec4(in_Model_BiTangent, 0.0))));
 
+	vec3 N_Old = normalize(vec3(u_View * (u_Model_Old * vec4(in_Model_Normal, 0.0))));
+	vec3 T_Old = normalize(vec3(u_View * (u_Model_Old * vec4(in_Model_Tangent, 0.0))));
+	vec3 B_Old = normalize(vec3(u_View * (u_Model_Old * vec4(in_Model_BiTangent, 0.0))));
+
 	//T = normalize(T - dot(T, N) * N);
 	//B = normalize(B - dot(B, N) * N);
 
@@ -60,6 +67,7 @@ void main(void) {
 	vertex.BiTangent = in_Model_BiTangent;
 
 	mat3 TBN = transpose(mat3(T, B, N));
+	mat3 TBN_Old = transpose(mat3(T_Old, B_Old, N_Old));
 	vertex.TBN = mat3(T, B, N);
 
 	material.Ambient = in_Ambient;
@@ -69,29 +77,47 @@ void main(void) {
 
 	vertex.UV = in_UV;
 
-	vertex.Tangent_Normal = normalize(TBN * (u_View * u_Model * vec4(in_Model_Normal, 0)).xyz);
+	vertex.Tangent_Normal = mix(
+		normalize(TBN_Old * (u_View * u_Model_Old * vec4(in_Model_Normal, 0)).xyz),
+		normalize(TBN * (u_View * u_Model * vec4(in_Model_Normal, 0)).xyz),
+		u_Lerp_Value);
 
-	vertex.Camera_ModelPosition = vec3(u_View * u_Model * vec4(in_Model_Position, 1));
+	vertex.Camera_ModelPosition = mix(
+		vec3(u_View * u_Model_Old * vec4(in_Model_Position, 1)),
+		vec3(u_View * u_Model * vec4(in_Model_Position, 1)),
+		u_Lerp_Value);
 
 	for(int i=0; i < u_AmountOfLights; i++) {
 		if(u_LightType[i] == false)
 		{
 			vertex.Tangent_LightDirection[i] = u_Camera_LightPosition[i] - vertex.Camera_ModelPosition;
 			vertex.Tangent_LightDistance[i] = length(vertex.Tangent_LightDirection[i]);
-			vertex.Tangent_LightDirection[i] = normalize(TBN * normalize(vertex.Tangent_LightDirection[i]));
+			vertex.Tangent_LightDirection[i] = mix(
+				normalize(TBN_Old * normalize(vertex.Tangent_LightDirection[i])),
+				normalize(TBN * normalize(vertex.Tangent_LightDirection[i])),
+				u_Lerp_Value);
 		}
 		else
 		{
-			vertex.Tangent_LightDirection[i] = normalize(TBN * normalize(-u_LightDirection[i]));
+			vertex.Tangent_LightDirection[i] = mix(
+				normalize(TBN_Old * normalize(-u_LightDirection[i])),
+				normalize(TBN * normalize(-u_LightDirection[i])),
+				u_Lerp_Value);
 			vertex.Tangent_LightDistance[i] = 0.01;
 		}
 		vertex.Camera_LightPointingDirection[i] = normalize(u_LightDirection[i]);
 	}
 
-	vertex.Tangent_ModelPosition = TBN * (u_View * (u_Model * vec4(in_Model_Position, 1))).xyz;
+	vertex.Tangent_ModelPosition = mix(
+		TBN_Old * (u_View * (u_Model_Old * vec4(in_Model_Position, 1))).xyz,
+		TBN * (u_View * (u_Model * vec4(in_Model_Position, 1))).xyz,
+		u_Lerp_Value);
 
 
-	vertex.Tangent_CameraPosition = TBN * vec3(0, 0, 0);
+	vertex.Tangent_CameraPosition = mix(
+		TBN_Old * vec3(0, 0, 0),
+		TBN * vec3(0, 0, 0),
+		u_Lerp_Value);
 	//Normal = (u_View * u_Model * vec4(in_Normal, 0)).xyz;
 
 
@@ -102,5 +128,8 @@ void main(void) {
 
 	//Color = (u_View * vec4(in_Position, 1)).xyz; //normalize(( u_View * u_Model * vec4(in_Position, 1)).xyz);
 
-	gl_Position = MVP * vec4(in_Model_Position, 1);
+	gl_Position = mix(
+		MVP_Old * vec4(in_Model_Position, 1),
+		MVP * vec4(in_Model_Position, 1),
+		u_Lerp_Value);
 }

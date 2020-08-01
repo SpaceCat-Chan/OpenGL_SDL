@@ -2,7 +2,7 @@
 
 #include "Common.hpp"
 
-class World;
-class Error;
+struct World;
+struct Error;
 
 Error UserInputSystem(World &GameWorld, DSeconds dt);

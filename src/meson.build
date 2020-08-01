@@ -10,6 +10,7 @@ sources = [
     'Texture/Texture.cpp',
     'TexturedMesh/TexturedMesh.cpp',
     'Octree/Octree.cpp',
+    'minitrace/minitrace.cpp',
     '../SDL-Helper-Libraries/KeyTracker/KeyTracker.cpp',
     '../SDL-Helper-Libraries/sfstream/sfstream.cpp',
 ]

@@ -18,7 +18,8 @@ enum Directions
 	Y = 0b00010,
 	Z = 0b00100,
 	OverCenter = 0b01000,
-	OutOfBounds = 0b10000
+	OutOfBounds = 0b10000,
+	OutsideCompletly = 0b11000
 };
 class Octree_Impl
 {
@@ -135,7 +136,7 @@ class Octree_Impl
 	bool Update(size_t id);
 	void Remove(size_t id);
 
-	std::vector<size_t> GetColliding(size_t id);
+	std::unordered_set<size_t> GetColliding(size_t id);
 };
 } // namespace Detail
 
@@ -149,7 +150,7 @@ class Octree
 	std::function<std::array<glm::dvec3, 2>(size_t)> m_GetAABB;
 
 	public:
-	Octree(decltype(m_GetAABB) GetAABB, double Radius = 1000) : m_GetAABB(GetAABB)
+	Octree(decltype(m_GetAABB) GetAABB, double Radius = 1) : m_GetAABB(GetAABB)
 	{
 		m_Root = std::make_unique<Detail::Octree_Impl>(GetAABB);
 		m_Root->m_TopLevel = this;
@@ -189,4 +190,6 @@ class Octree
 	void Add(size_t id);
 	void Update(size_t id);
 	void Remove(size_t id);
+
+	std::unordered_set<size_t> GetColliding(size_t id);
 };
