@@ -12,5 +12,5 @@ Error BasicBackupSystem(World &GameWorld, DSeconds dt)
 			GameWorld[i].BasicBackup()->Transform_ = GameWorld[i].Transform();
 		}
 	}
-	return {};
+	return {Error::Type::None};
 }

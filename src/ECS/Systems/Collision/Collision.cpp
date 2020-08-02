@@ -17,7 +17,7 @@ Error UpdateOctree(World &GameWorld, DSeconds dt)
 	}
 	GameWorld.UpdatedEntities.clear();
 
-	return {};
+	return {Error::Type::None};
 }
 
 bool IndevidualCollision(Meshes &Mesh1, Meshes &Mesh2, glm::dmat4 ToSecond)
@@ -162,5 +162,5 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 			}
 		}
 	}
-	return {};
+	return {Error::Type::None};
 }
