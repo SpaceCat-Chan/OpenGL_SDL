@@ -41,7 +41,38 @@ class Texture {
 	 * 
 	 * if loading the file failed then the Texture will be unchanged
 	 */
-	bool Load(std::string Filename, bool Flip=true);
+	bool Load(const std::string& Filename, bool Flip=true);
+
+	enum class WrapDimensions
+	{
+		None=0,
+		X=1,
+		Y=2,
+		XY=X|Y
+	};
+
+	/**
+	 * \brief changes the wrapping mode of the texture
+	 * 
+	 * \param ClampMode the Clamp mode that the texture should use
+	 * \param WrapDimensions which dimensions the wrapping should apply to
+	 */
+	void SetWrapMode(GLint ClampMode, WrapDimensions WrapDimensions=WrapDimensions::XY);
+	/**
+	 * \brief sets the color that should be used for wrapping mode \ref GL_CLAMP_TO_BORDER
+	 * 
+	 * \param Color the color
+	 */
+	void SetWrapColor(glm::vec<4, GLfloat> Color);
+
+	/**
+	 * \brief sets the texture filtering mode
+	 * 
+	 * \param MinOrMag if this should apply to Min or Mag resizing \
+	 * only GL_TEXTURE_MIN_FILTER and GL_TEXTURE_MAG_FILTER are allowed
+	 * \param FilterMode the mode of filtering
+	 */
+	void SetTextureFiltering(GLint MinOrMag, GLint FilterMode);
 
 	/**
 	 * \brief binds the texture
@@ -55,3 +86,5 @@ class Texture {
 	 */
 	void Destroy();
 };
+
+Texture::WrapDimensions operator&(const Texture::WrapDimensions lhs, const Texture::WrapDimensions rhs);

@@ -65,7 +65,9 @@ class TexturedMesh {
 	/**
 	 * \brief same as Bind(0, ShaderProgram)
 	 * 
-	 * \param ShaderProgram look at Bind(size_t, Shader)
+	 * \param ShaderProgram look at \ref Bind(size_t, Shader&)
+	 * 
+	 * \sa Bind(size_t, Shader&)
 	 */
 	void Bind(Shader &ShaderProgram) { Bind(0, ShaderProgram); }
 

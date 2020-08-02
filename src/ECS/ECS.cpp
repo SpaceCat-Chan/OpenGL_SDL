@@ -334,7 +334,7 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 
 		case SDL_MOUSEMOTION:
 			constexpr double Sensitivity = 0.1;
-			GameWorld.View.OffsetPitchYaw((double)Event.motion.yrel * Sensitivity * -1, (double)Event.motion.xrel * Sensitivity, 0, -89, 89);
+			GameWorld.View.OffsetPitchYaw(glm::radians(Event.motion.yrel * Sensitivity * -1), glm::radians(Event.motion.xrel * Sensitivity), 0, glm::radians(-89.0), glm::radians(89.0));
 		}
 
 		for (auto &Handler : UserInput::PostEvent)

@@ -19,7 +19,7 @@ class Camera
 {
 	glm::dmat4x4 m_Projection, m_View;
 	glm::dvec3 m_Position, m_LookVector, m_Up={0,1,0};
-	double m_Pitch = 0, m_Yaw = -90, m_Roll = 0;
+	double m_Pitch = 0, m_Yaw = glm::radians(-90.0), m_Roll = 0;
 
 	/**
 	 * \brief updates the View matrix to reflect new variables
@@ -123,7 +123,7 @@ public:
 	 * \param Yaw the yaw of the camera
 	 * \param Roll the roll of the camera
 	 */
-	void LookIn(double Pitch = 0, double Yaw = -90, double Roll = 0);
+	void LookIn(double Pitch = 0, double Yaw = glm::radians(-90.0), double Roll = 0);
 	/**
 	 * \brief will make the camera look at a position
 	 * 

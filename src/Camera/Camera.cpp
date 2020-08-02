@@ -121,7 +121,7 @@ void Camera::LookIn(glm::dvec3 Direction, glm::dvec3 Up /*={0, 1, 0}*/)
 	LockViewDirection();
 }
 
-void Camera::LookIn(double Pitch /*=0*/, double Yaw /*=-90*/, double Roll /*=0*/)
+void Camera::LookIn(double Pitch /*=0*/, double Yaw /*=glm::radians(-90)*/, double Roll /*=0*/)
 {
 	m_Pitch = Pitch;
 	m_Yaw = Yaw;
@@ -191,7 +191,7 @@ void Camera::UpdateView()
 	else
 	{
 		glm::dvec3 TrueUp;
-		std::tie(m_LookVector, TrueUp) = GetViewAndUp(glm::radians(m_Pitch), glm::radians(m_Yaw), glm::radians(m_Roll), m_Up);
+		std::tie(m_LookVector, TrueUp) = GetViewAndUp(m_Pitch, m_Yaw, m_Roll, m_Up);
 		m_View = glm::lookAt(m_Position, m_Position + m_LookVector, TrueUp);
 	}
 }
@@ -229,11 +229,9 @@ void Camera::OffsetPitchYaw(double Pitch,
 
 	if(RespectRoll)
 	{
-		auto [LookResult, _] = GetViewAndUp(glm::radians(Pitch), glm::radians(Yaw), 0, m_Up);
-		LookResult = glm::vec3(glm::rotate(glm::dmat4(1), glm::radians(m_Roll), glm::dvec3{1, 0, 0}) * glm::dvec4(LookResult, 0));
+		auto [LookResult, _] = GetViewAndUp(Pitch, Yaw, 0, m_Up);
+		LookResult = glm::vec3(glm::rotate(glm::dmat4(1), m_Roll, glm::dvec3{1, 0, 0}) * glm::dvec4(LookResult, 0));
 		std::tie(Pitch, Yaw) = GetPitchYawFromLookVector(LookResult);
-		Pitch = glm::degrees(Pitch);
-		Yaw = glm::degrees(Yaw);
 	}
 
 	m_Pitch += Pitch;
