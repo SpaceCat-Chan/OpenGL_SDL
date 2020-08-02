@@ -148,7 +148,7 @@ void internal_mtr_raw_event_arg(const char *category, const char *name, char ph,
 
 #define MTR_BEGIN(c, n)
 #define MTR_END(c, n)
-#define MTR_SCOPE(c, n)
+#define MTR_SCOPE(c, n, s)
 #define MTR_START(c, n, id)
 #define MTR_STEP(c, n, id, step)
 #define MTR_FINISH(c, n, id)
@@ -167,7 +167,7 @@ void internal_mtr_raw_event_arg(const char *category, const char *name, char ph,
 
 #define MTR_BEGIN_I(c, n, aname, aintval)
 #define MTR_END_I(c, n, aname, aintval)
-#define MTR_SCOPE_I(c, n, aname, aintval)
+#define MTR_SCOPE_I(c, n, s, aname, aintval)
 
 #define MTR_INSTANT(c, n)
 #define MTR_INSTANT_C(c, n, aname, astrval)
