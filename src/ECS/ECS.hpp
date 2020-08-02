@@ -21,6 +21,7 @@
 #include "Components/Meshes/Meshes.hpp"
 #include "Components/Transform/Transform.hpp"
 #include "Components/UserInput/UserInput.hpp"
+#include "Components/Collision/Collision.hpp"
 
 #include "Systems/AutoPosition/AutoPosition.hpp"
 #include "Systems/BasicBackup/BasicBackup.hpp"
@@ -67,15 +68,15 @@ struct World
 	bool Quit = false;
 
 
-	static constexpr size_t ComponentAmount = 5;
 
 	private:
 	std::vector<std::optional<glm::dvec3>> PositionComponents;
 	std::vector<std::optional<Meshes>> MeshComponents;
 	std::vector<std::optional<LightInfo>> LightComponents;
-	std::vector<std::optional<::Transform>> TransformComponents;
-	std::vector<std::optional<::Children>> ChildrenComponents;
-	std::vector<std::optional<::BasicBackup>> BackupComponents;
+	std::vector<std::optional<Transform>> TransformComponents;
+	std::vector<std::optional<Children>> ChildrenComponents;
+	std::vector<std::optional<BasicBackup>> BackupComponents;
+	std::vector<std::optional<Collision>> CollisionComponents;
 
 	public:
 	class EntityReferanceWrapper
@@ -111,17 +112,21 @@ struct World
 		{
 			return m_World->LightComponents[m_Index];
 		}
-		std::optional<::Transform> &Transform()
+		std::optional<Transform> &Transform()
 		{
 			return m_World->TransformComponents[m_Index];
 		}
-		std::optional<::Children> &Children()
+		std::optional<Children> &Children()
 		{
 			return m_World->ChildrenComponents[m_Index];
 		}
-		std::optional<::BasicBackup> &BasicBackup()
+		std::optional<BasicBackup> &BasicBackup()
 		{
 			return m_World->BackupComponents[m_Index];
+		}
+		std::optional<Collision> &Collision()
+		{
+			return m_World->CollisionComponents[m_Index];
 		}
 
 		void reset()
@@ -132,6 +137,7 @@ struct World
 			Transform() = std::nullopt;
 			Children() = std::nullopt;
 			BasicBackup() = std::nullopt;
+			Collision() = std::nullopt;
 		}
 	};
 
@@ -210,7 +216,8 @@ struct World
 			LightComponents.push_back(std::nullopt);
 			TransformComponents.push_back(std::nullopt);
 			ChildrenComponents.push_back(std::nullopt);
-			BackupComponents.push_back(::BasicBackup{});
+			BackupComponents.push_back(BasicBackup{});
+			CollisionComponents.push_back(std::nullopt);
 			CollisionOctree.Add(PositionComponents.size() - 1);
 			UpdatedEntities.push_back(PositionComponents.size() - 1);
 			return PositionComponents.size() - 1;

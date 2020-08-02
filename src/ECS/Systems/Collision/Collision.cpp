@@ -117,6 +117,13 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 			{
 				Transform = GameWorld[Entity].Transform()->CalculateFull();
 			}
+			if (GameWorld[Entity].Collision() &&
+			    GameWorld[Entity].Collision()->CollisionMesh)
+			{
+				Transform =
+				    Transform *
+				    GameWorld[Entity].Collision()->CollisionMeshToModelSpace;
+			}
 			auto PossiblyColliginEntities =
 			    GameWorld.CollisionOctree.GetColliding(Entity);
 			for (auto &Colliding : PossiblyColliginEntities)
@@ -140,11 +147,28 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 						CollidingTransform =
 						    GameWorld[Colliding].Transform()->CalculateFull();
 					}
+					if (GameWorld[Colliding].Collision() &&
+					    GameWorld[Colliding].Collision()->CollisionMesh)
+					{
+						Transform = Transform * GameWorld[Colliding]
+						                            .Collision()
+						                            ->CollisionMeshToModelSpace;
+					}
 					CollidingTransform =
 					    glm::inverse(CollidingTransform) * Transform;
+					auto EntityMesh = *GameWorld[Entity].Mesh();
+					if(GameWorld[Entity].Collision() && GameWorld[Entity].Collision()->CollisionMesh)
+					{
+						EntityMesh = *GameWorld[Entity].Collision()->CollisionMesh;
+					}
+					auto CollidingMesh = *GameWorld[Entity].Mesh();
+					if(GameWorld[Colliding].Collision() && GameWorld[Colliding].Collision()->CollisionMesh)
+					{
+						CollidingMesh = *GameWorld[Colliding].Collision()->CollisionMesh;
+					}
 					auto Result = IndevidualCollision(
-					    *GameWorld[Entity].Mesh(),
-					    *GameWorld[Colliding].Mesh(),
+					    EntityMesh,
+						CollidingMesh,
 					    CollidingTransform);
 					if (Result)
 					{

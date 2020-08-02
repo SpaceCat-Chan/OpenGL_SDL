@@ -6,7 +6,7 @@
 #include "ECS/Components/Meshes/Meshes.hpp"
 
 
-class
+class Collision
 {
 	public:
 	std::optional<Meshes> CollisionMesh;
