@@ -66,15 +66,6 @@ struct World
 {
 	bool Quit = false;
 
-	enum Components
-	{
-		Position,
-		Mesh,
-		Light,
-		Transform,
-		Children,
-		BasicBackup
-	};
 
 	static constexpr size_t ComponentAmount = 5;
 
@@ -245,38 +236,3 @@ struct World
 		return Clone;
 	}
 };
-
-template <size_t Component, typename... Args>
-std::enable_if_t<Component == World::Position, void>
-ActivateComponent(size_t ID, World &World, Args &&... args)
-{
-	World[ID].Position() = glm::dvec3(std::forward<Args>(args)...);
-}
-
-template <size_t Component, typename... Args>
-std::enable_if_t<Component == World::Mesh, void>
-ActivateComponent(size_t ID, World &World, Args &&... args)
-{
-	World[ID].Mesh() = Meshes(std::forward<Args>(args)...);
-}
-
-template <size_t Component, typename... Args>
-std::enable_if_t<Component == World::Light, void>
-ActivateComponent(size_t ID, World &World, Args &&... args)
-{
-	World[ID].Light() = LightInfo(std::forward<Args>(args)...);
-}
-
-template <size_t Component, typename... Args>
-std::enable_if_t<Component == World::Transform, void>
-ActivateComponent(size_t ID, World &World, Args &&... args)
-{
-	World[ID].Transform() = Transform(std::forward<Args>(args)...);
-}
-
-template <size_t Component, typename... Args>
-std::enable_if_t<Component == World::Children, void>
-ActivateComponent(size_t ID, World &World, Args &&... args)
-{
-	World[ID].Children() = Children(std::forward<Args>(args)...);
-}

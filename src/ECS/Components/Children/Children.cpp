@@ -8,9 +8,7 @@ Error Children::EnforceCorrectness(World &GameWorld, size_t Me)
 	{
 		if (!GameWorld[Parent].Children())
 		{
-			ActivateComponent<World::Children>(
-			    static_cast<size_t>(Parent),
-			    GameWorld);
+				GameWorld[Parent].Children() = ::Children{};
 		}
 		auto &MyParent = *GameWorld[Parent].Children();
 		bool MeInParent = false;
@@ -39,7 +37,7 @@ Error Children::EnforceCorrectness(World &GameWorld, size_t Me)
 	{
 		if (!GameWorld[ChildID].Children())
 		{
-			ActivateComponent<World::Children>(ChildID, GameWorld);
+			GameWorld[ChildID].Children() = ::Children{};
 		}
 		auto &Child = *GameWorld[ChildID].Children();
 		Child.Parent = Me;

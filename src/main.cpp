@@ -131,35 +131,25 @@ int main(int argc, char **argv) // NOLINT
 		size_t BrickFloor = GameWorld.NewEntity();
 		size_t BrickWall = GameWorld.NewEntity();
 
-		ActivateComponent<World::Mesh>(
-		    CubeOne,
-		    GameWorld,
-		    Meshes::MeshType::Textured,
-		    CubeMesh);
-		ActivateComponent<World::Mesh>(
-		    CubeTwo,
-		    GameWorld,
-		    Meshes::MeshType::Textured,
-		    CubeMesh);
-		ActivateComponent<World::Mesh>(
-		    BrickFloor,
-		    GameWorld,
-		    Meshes::MeshType::Textured,
-		    BrickWallMesh);
-		ActivateComponent<World::Mesh>(
-		    BrickWall,
-		    GameWorld,
-		    Meshes::MeshType::Textured,
-		    BrickWall3DMesh);
+		GameWorld[CubeOne].Mesh() = {Meshes::MeshType::Textured, CubeMesh};
+		GameWorld[CubeTwo].Mesh() = {Meshes::MeshType::Textured, CubeMesh};
 
-		ActivateComponent<World::Position>(CubeTwo, GameWorld, 3, 3, 3);
-		ActivateComponent<World::Transform>(CubeTwo, GameWorld);
+		GameWorld[BrickFloor].Mesh() = {
+		    Meshes::MeshType::Textured,
+		    BrickWallMesh};
+
+		GameWorld[BrickWall].Mesh() = {
+		    Meshes::MeshType::Textured,
+		    BrickWall3DMesh};
+
+		GameWorld[CubeTwo].Position() = {3, 3, 3};
+		GameWorld[CubeTwo].Transform() = Transform{};
 		GameWorld[CubeTwo].Transform()->Tranformations.emplace_back(
 		    Transform::Type::AutoPosition,
 		    glm::dmat4x4(1));
 
 		size_t CubeGroupParent = GameWorld.NewEntity();
-		ActivateComponent<World::Children>(CubeGroupParent, GameWorld);
+		GameWorld[CubeGroupParent].Children() = Children{};
 		GameWorld[CubeGroupParent].Children()->Children.push_back(CubeOne);
 		GameWorld[CubeGroupParent].Children()->Children.push_back(CubeTwo);
 		GameWorld[CubeGroupParent].Children()->Children.push_back(BrickFloor);
@@ -174,9 +164,9 @@ int main(int argc, char **argv) // NOLINT
 		BrickWall = GameWorld.CloneEntity(BrickWall);
 
 		CubeGroupParent = GameWorld.NewEntity();
-		ActivateComponent<World::Position>(CubeGroupParent, GameWorld, 1, 0, 0);
-		ActivateComponent<World::Transform>(CubeGroupParent, GameWorld);
-		ActivateComponent<World::Children>(CubeGroupParent, GameWorld);
+		GameWorld[CubeGroupParent].Position() = {1, 0, 0};
+		GameWorld[CubeGroupParent].Transform() = Transform{};
+		GameWorld[CubeGroupParent].Children() = Children{};
 		GameWorld[CubeGroupParent].Transform()->Tranformations.emplace_back(
 		    Transform::Type::AutoPosition,
 		    glm::dmat4x4(1));
@@ -195,14 +185,9 @@ int main(int argc, char **argv) // NOLINT
 		BrickWall = GameWorld.CloneEntity(BrickWall);
 
 		size_t CubeGroup2Parent = GameWorld.NewEntity();
-		ActivateComponent<World::Position>(
-		    CubeGroup2Parent,
-		    GameWorld,
-		    0,
-		    1,
-		    0);
-		ActivateComponent<World::Transform>(CubeGroup2Parent, GameWorld);
-		ActivateComponent<World::Children>(CubeGroup2Parent, GameWorld);
+		GameWorld[CubeGroup2Parent].Position() = {0, 1, 0};
+	GameWorld[CubeGroup2Parent].Transform() = Transform{};
+	GameWorld[CubeGroup2Parent].Children() = Children{};
 		GameWorld[CubeGroup2Parent].Transform()->Tranformations.emplace_back(
 		    Transform::Type::AutoPosition,
 		    glm::dmat4x4(1));
@@ -229,53 +214,36 @@ int main(int argc, char **argv) // NOLINT
 	}
 
 	size_t Utah = GameWorld.NewEntity();
-	ActivateComponent<World::Position>(Utah, GameWorld, -3, 0, 0);
-	ActivateComponent<World::Mesh>(
-	    Utah,
-	    GameWorld,
-	    Meshes::MeshType::Static,
-	    0);
-	ActivateComponent<World::Transform>(Utah, GameWorld);
+	GameWorld[Utah].Position() = {-3, 0, 0};
+	GameWorld[Utah].Mesh() = {Meshes::MeshType::Static, 0};
+	
+	GameWorld[Utah].Transform() = Transform{};
 	GameWorld[Utah].Transform()->Tranformations.emplace_back(
 	    Transform::Type::AutoPosition,
 	    glm::dmat4x4(1));
 
 	Utah = GameWorld.NewEntity();
-	ActivateComponent<World::Position>(Utah, GameWorld, 0, 0, -3);
-	ActivateComponent<World::Mesh>(
-	    Utah,
-	    GameWorld,
-	    Meshes::MeshType::Static,
-	    1);
-	ActivateComponent<World::Transform>(Utah, GameWorld);
+	GameWorld[Utah].Position() = {0, 0, -3};
+	GameWorld[Utah].Mesh() = {Meshes::MeshType::Static, 1};
+	GameWorld[Utah].Transform() = Transform{};
 	GameWorld[Utah].Transform()->Tranformations.emplace_back(
 	    Transform::Type::AutoPosition,
 	    glm::dmat4x4(1));
 
 	size_t Light = GameWorld.NewEntity();
-	ActivateComponent<World::Position>(Light, GameWorld, 0.5, 0.3, -1);
-	ActivateComponent<World::Light>(Light, GameWorld);
-	ActivateComponent<World::Mesh>(
-	    Light,
-	    GameWorld,
-	    Meshes::MeshType::Static,
-	    2,
-	    false);
-	ActivateComponent<World::Transform>(Light, GameWorld);
+	GameWorld[Light].Position() = {0.5, 0.3, -1};
+	GameWorld[Light].Light() = LightInfo{};
+	GameWorld[Light].Mesh() = {Meshes::MeshType::Static, 2, false};
+	GameWorld[Light].Transform() = Transform{};
 	GameWorld[Light].Transform()->Tranformations.emplace_back(
 	    Transform::Type::AutoPosition,
 	    glm::dmat4x4(1));
 
 	Light = GameWorld.NewEntity();
-	ActivateComponent<World::Position>(Light, GameWorld, 0.5, 1.5, 0.5);
-	ActivateComponent<World::Light>(Light, GameWorld);
-	ActivateComponent<World::Mesh>(
-	    Light,
-	    GameWorld,
-	    Meshes::MeshType::Static,
-	    2,
-	    false);
-	ActivateComponent<World::Transform>(Light, GameWorld);
+	GameWorld[Light].Position() = {0.5, 1.5, 0.5};
+	GameWorld[Light].Light() = LightInfo{};
+	GameWorld[Light].Mesh() = {Meshes::MeshType::Static, 2, false};
+	GameWorld[Light].Transform() = Transform{};
 	GameWorld[Light].Transform()->Tranformations.emplace_back(
 	    Transform::Type::AutoPosition,
 	    glm::dmat4x4(1));
