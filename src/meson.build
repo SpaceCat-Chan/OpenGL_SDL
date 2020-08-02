@@ -9,15 +9,18 @@ sources = [
     'Shader/Shader.cpp',
     'Texture/Texture.cpp',
     'TexturedMesh/TexturedMesh.cpp',
+    'Octree/Octree.cpp',
+    'minitrace/minitrace.cpp',
     '../SDL-Helper-Libraries/KeyTracker/KeyTracker.cpp',
-    '../SDL-Helper-Libraries/sfstream/sfstream.cpp'
+    '../SDL-Helper-Libraries/sfstream/sfstream.cpp',
 ]
 
+subdir('ECS')
 
 depends = [
     dependency('SDL2'),
     dependency('GL'),
-    dependency('GLEW'),
+    dependency('glew'),
     dependency('glm')
 ]
 

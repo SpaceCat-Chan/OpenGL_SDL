@@ -23,7 +23,10 @@ in VertexInfo {
 	vec3 BiTangent;
 } Fragment;
 
+uniform float u_Lerp_Value;
+
 uniform mat4 u_Model;
+uniform mat4 u_Model_Old;
 uniform mat4 u_View;
 uniform sampler2D u_Texture;
 uniform sampler2D u_Specular;
