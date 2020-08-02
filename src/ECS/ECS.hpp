@@ -37,12 +37,26 @@
  */
 struct Error
 {
-	Error() = default;
 	enum class Type
 	{
-		None
+		None,
+		Warning,
+		NonFatal,
+		Fatal
 	};
-	Error(Type) {}
+
+	/**
+	 * \brief how severe the error is
+	 */
+	Type Severity;
+	/**
+	 * \brief a message explaining the error
+	 */
+	std::string Message;
+
+	Error(Type _Severity, std::string _Message = "") : Severity(_Severity), Message(_Message)
+	{
+	}
 };
 
 /**
