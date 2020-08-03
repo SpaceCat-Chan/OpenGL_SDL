@@ -115,7 +115,7 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 			}
 			else if (GameWorld[Entity].Transform())
 			{
-				Transform = GameWorld[Entity].Transform()->CalculateFull();
+				Transform = GameWorld[Entity].Transform()->CalculateFull(GameWorld, Entity);
 			}
 			if (GameWorld[Entity].Collision() &&
 			    GameWorld[Entity].Collision()->CollisionMesh)
@@ -145,7 +145,7 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 					else if (GameWorld[Colliding].Transform())
 					{
 						CollidingTransform =
-						    GameWorld[Colliding].Transform()->CalculateFull();
+						    GameWorld[Colliding].Transform()->CalculateFull(GameWorld, Colliding);
 					}
 					if (GameWorld[Colliding].Collision() &&
 					    GameWorld[Colliding].Collision()->CollisionMesh)

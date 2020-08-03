@@ -24,8 +24,9 @@ struct Children
 	 *
 	 * \return the Transform matrix of the parent
 	 */
-	glm::dmat4x4
-	CalculateParentTransform(World &GameWorld, bool UseBackup = false);
+	glm::dmat4x4 CalculateParentTransform(
+	    const World &GameWorld,
+	    bool UseBackup = false) const;
 
 	/**
 	 * \brief return this entities transform matrix multipled with the parents
@@ -35,8 +36,10 @@ struct Children
 	 *
 	 * \return this entities full transform matrix
 	 */
-	glm::dmat4x4
-	CalculateFullTransform(World &GameWorld, size_t Me, bool UseBackup = false);
+	glm::dmat4x4 CalculateFullTransform(
+	    const World &GameWorld,
+	    size_t Me,
+	    bool UseBackup = false) const;
 
 	/**
 	 * \brief makes sure that all other entities have this entity listed in the

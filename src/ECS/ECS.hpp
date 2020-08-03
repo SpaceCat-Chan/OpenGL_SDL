@@ -23,7 +23,6 @@
 #include "Components/UserInput/UserInput.hpp"
 #include "Components/Collision/Collision.hpp"
 
-#include "Systems/AutoPosition/AutoPosition.hpp"
 #include "Systems/BasicBackup/BasicBackup.hpp"
 #include "Systems/Collision/Collision.hpp"
 #include "Systems/Render/Render.hpp"
@@ -82,10 +81,16 @@ struct World
 	class EntityReferanceWrapper
 	{
 		World *m_World;
+		const World *m_Const_World;
 		std::size_t m_Index;
 		EntityReferanceWrapper(World &GameWorld, std::size_t Index)
 		{
 			m_World = &GameWorld;
+			m_Index = Index;
+		}
+		EntityReferanceWrapper(const World &GameWorld, std::size_t Index)
+		{
+			m_Const_World = &GameWorld;
 			m_Index = Index;
 		}
 
@@ -129,6 +134,35 @@ struct World
 			return m_World->CollisionComponents[m_Index];
 		}
 
+		const std::optional<glm::dvec3> &Position() const
+		{
+			return m_Const_World->PositionComponents[m_Index];
+		}
+		const std::optional<Meshes> &Mesh() const
+		{
+			return m_Const_World->MeshComponents[m_Index];
+		}
+		const std::optional<LightInfo> &Light() const
+		{
+			return m_Const_World->LightComponents[m_Index];
+		}
+		const std::optional<::Transform> &Transform() const
+		{
+			return m_Const_World->TransformComponents[m_Index];
+		}
+		const std::optional<::Children> &Children() const
+		{
+			return m_Const_World->ChildrenComponents[m_Index];
+		}
+		const std::optional<::BasicBackup> &BasicBackup() const
+		{
+			return m_Const_World->BackupComponents[m_Index];
+		}
+		const std::optional<::Collision> &Collision() const
+		{
+			return m_Const_World->CollisionComponents[m_Index];
+		}
+
 		void reset()
 		{
 			Position() = std::nullopt;
@@ -144,6 +178,10 @@ struct World
 	std::size_t size() { return PositionComponents.size(); }
 
 	inline EntityReferanceWrapper operator[](std::size_t Index)
+	{
+		return EntityReferanceWrapper{*this, Index};
+	}
+	inline const EntityReferanceWrapper operator[](std::size_t Index) const
 	{
 		return EntityReferanceWrapper{*this, Index};
 	}
@@ -164,7 +202,7 @@ struct World
 			}
 			else if (GameWorld[id].Transform())
 			{
-				MeshTransform = GameWorld[id].Transform()->CalculateFull();
+				MeshTransform = GameWorld[id].Transform()->CalculateFull(GameWorld, id);
 			}
 			else
 			{
@@ -186,7 +224,6 @@ struct World
 	    UpdateSystems{
 	        {{true, BasicBackupSystem}},
 	        {{true, UserInputSystem}},
-	        {{true, AutoPositionSystem}},
 	        {{true, UpdateOctree}},
 			{{true, HandleCollisions}}};
 
