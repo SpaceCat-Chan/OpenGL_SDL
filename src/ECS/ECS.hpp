@@ -8,6 +8,7 @@
 #include <queue>
 #include <vector>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/ext.hpp>
 
 #include "Camera/Camera.hpp"
@@ -17,14 +18,16 @@
 
 #include "Components/BasicBackup/BasicBackup.hpp"
 #include "Components/Children/Children.hpp"
+#include "Components/Collision/Collision.hpp"
+#include "Components/Force/Force.hpp"
 #include "Components/LightInfo/LightInfo.hpp"
 #include "Components/Meshes/Meshes.hpp"
 #include "Components/Transform/Transform.hpp"
 #include "Components/UserInput/UserInput.hpp"
-#include "Components/Collision/Collision.hpp"
 
 #include "Systems/BasicBackup/BasicBackup.hpp"
 #include "Systems/Collision/Collision.hpp"
+#include "Systems/Force/Force.hpp"
 #include "Systems/Render/Render.hpp"
 #include "Systems/UserInput/UserInput.hpp"
 
@@ -54,7 +57,8 @@ struct Error
 	 */
 	std::string Message;
 
-	Error(Type _Severity, std::string _Message = "") : Severity(_Severity), Message(_Message)
+	Error(Type _Severity, std::string _Message = "")
+	    : Severity(_Severity), Message(_Message)
 	{
 	}
 };
@@ -66,8 +70,6 @@ struct World
 {
 	bool Quit = false;
 
-
-
 	private:
 	std::vector<std::optional<glm::dvec3>> PositionComponents;
 	std::vector<std::optional<Meshes>> MeshComponents;
@@ -76,6 +78,7 @@ struct World
 	std::vector<std::optional<Children>> ChildrenComponents;
 	std::vector<std::optional<BasicBackup>> BackupComponents;
 	std::vector<std::optional<Collision>> CollisionComponents;
+	std::vector<std::optional<std::vector<Force>>> ForceComponents;
 
 	public:
 	class EntityReferanceWrapper
@@ -101,8 +104,8 @@ struct World
 
 		EntityReferanceWrapper(const EntityReferanceWrapper &) = delete;
 		EntityReferanceWrapper(EntityReferanceWrapper &&) = default;
-		EntityReferanceWrapper &
-		operator=(const EntityReferanceWrapper &) = delete;
+		EntityReferanceWrapper &operator=(const EntityReferanceWrapper &)
+		    = delete;
 		EntityReferanceWrapper &operator=(EntityReferanceWrapper &&) = delete;
 
 		std::optional<glm::dvec3> &Position()
@@ -133,6 +136,10 @@ struct World
 		{
 			return m_World->CollisionComponents[m_Index];
 		}
+		std::optional<std::vector<Force>> &Force()
+		{
+			return m_World->ForceComponents[m_Index];
+		}
 
 		const std::optional<glm::dvec3> &Position() const
 		{
@@ -162,6 +169,10 @@ struct World
 		{
 			return m_Const_World->CollisionComponents[m_Index];
 		}
+		const std::optional<std::vector<::Force>> &Force() const
+		{
+			return m_Const_World->ForceComponents[m_Index];
+		}
 
 		void reset()
 		{
@@ -186,7 +197,7 @@ struct World
 		return EntityReferanceWrapper{*this, Index};
 	}
 
-	std::list<size_t> UpdatedEntities;
+	std::vector<size_t> UpdatedEntities;
 
 	Octree CollisionOctree{[this](size_t id) -> std::array<glm::dvec3, 2> {
 		auto &GameWorld = *this;
@@ -195,14 +206,15 @@ struct World
 			glm::dmat4x4 MeshTransform;
 			if (GameWorld[id].Children())
 			{
-				MeshTransform =
-				    GameWorld[id].Children()->CalculateFullTransform(
+				MeshTransform
+				    = GameWorld[id].Children()->CalculateFullTransform(
 				        GameWorld,
 				        id);
 			}
 			else if (GameWorld[id].Transform())
 			{
-				MeshTransform = GameWorld[id].Transform()->CalculateFull(GameWorld, id);
+				MeshTransform
+				    = GameWorld[id].Transform()->CalculateFull(GameWorld, id);
 			}
 			else
 			{
@@ -225,7 +237,8 @@ struct World
 	        {{true, BasicBackupSystem}},
 	        {{true, UserInputSystem}},
 	        {{true, UpdateOctree}},
-			{{true, HandleCollisions}}};
+	        {{true, HandleCollisions}},
+	        {{true, ForceSystem}}};
 
 	std::vector<std::function<Error(World &, DSeconds)>> RenderSystems{
 	    RenderSystem};
