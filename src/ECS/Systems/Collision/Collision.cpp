@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 
+#include "ECS/ComponentInterface.hpp"
 #include "ECS/ECS.hpp"
 #include "ECS/TransformedMinMax.hpp"
 #include "minitrace/minitrace.h"
@@ -30,17 +31,17 @@ bool IndevidualCollision(Meshes &Mesh1, Meshes &Mesh2, glm::dmat4 ToSecond)
 		auto [Min1, Max1] = CalculateTransformedMinMax(Mesh1, ToSecond);
 		auto [Min2, Max2] = CalculateTransformedMinMax(Mesh2, glm::dmat2{1});
 
-		auto XCase = (Min1.x <= Min2.x && Max1.x >= Min2.x) ||
-		             (Max1.x >= Max2.x && Min1.x <= Max2.x) ||
-		             (Min1.x <= Min2.x && Max1.x >= Max2.x);
+		auto XCase = (Min1.x <= Min2.x && Max1.x >= Min2.x)
+		             || (Max1.x >= Max2.x && Min1.x <= Max2.x)
+		             || (Min1.x <= Min2.x && Max1.x >= Max2.x);
 
-		auto YCase = XCase || (Min1.y <= Min2.y && Max1.y >= Min2.y) ||
-		             (Max1.y >= Max2.y && Min1.y <= Max2.y) ||
-		             (Min1.y <= Min2.y && Max1.y >= Max2.y);
+		auto YCase = XCase || (Min1.y <= Min2.y && Max1.y >= Min2.y)
+		             || (Max1.y >= Max2.y && Min1.y <= Max2.y)
+		             || (Min1.y <= Min2.y && Max1.y >= Max2.y);
 
-		auto ZCase = YCase || (Min1.z <= Min2.z && Max1.z >= Min2.z) ||
-		             (Max1.z >= Max2.z && Min1.z <= Max2.z) ||
-		             (Min1.z <= Min2.z && Max1.z >= Max2.z);
+		auto ZCase = YCase || (Min1.z <= Min2.z && Max1.z >= Min2.z)
+		             || (Max1.z >= Max2.z && Min1.z <= Max2.z)
+		             || (Min1.z <= Min2.z && Max1.z >= Max2.z);
 
 		if (!ZCase)
 		{
@@ -76,10 +77,10 @@ bool IndevidualCollision(Meshes &Mesh1, Meshes &Mesh2, glm::dmat4 ToSecond)
 	auto Triangles2 = Temp3.get();
 	for (size_t i = 0; i < Triangles.size() / 3; i++)
 	{
-		Meshes::Custom = {
-		    ToSecond * glm::dvec4(Triangles[i * 3], 1),
-		    ToSecond * glm::dvec4(Triangles[i * 3 + 1], 1),
-		    ToSecond * glm::dvec4(Triangles[i * 3 + 2], 1)};
+		Meshes::Custom
+		    = {ToSecond * glm::dvec4(Triangles[i * 3], 1),
+		       ToSecond * glm::dvec4(Triangles[i * 3 + 1], 1),
+		       ToSecond * glm::dvec4(Triangles[i * 3 + 2], 1)};
 		auto PossibleCollisions = Octree->GetColliding(size_t(-1));
 		for (auto &OtherTriangle : PossibleCollisions)
 		{
@@ -105,27 +106,10 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 	{
 		if (GameWorld[Entity].Mesh())
 		{
-			glm::dmat4 Transform{1};
-			if (GameWorld[Entity].Children())
-			{
-				Transform =
-				    GameWorld[Entity].Children()->CalculateFullTransform(
-				        GameWorld,
-				        Entity);
-			}
-			else if (GameWorld[Entity].Transform())
-			{
-				Transform = GameWorld[Entity].Transform()->CalculateFull(GameWorld, Entity);
-			}
-			if (GameWorld[Entity].Collision() &&
-			    GameWorld[Entity].Collision()->CollisionMesh)
-			{
-				Transform =
-				    Transform *
-				    GameWorld[Entity].Collision()->CollisionMeshToModelSpace;
-			}
-			auto PossiblyColliginEntities =
-			    GameWorld.CollisionOctree.GetColliding(Entity);
+			glm::dmat4 Transform = CalcCollisionTransform(GameWorld, Entity);
+
+			auto PossiblyColliginEntities
+			    = GameWorld.CollisionOctree.GetColliding(Entity);
 			for (auto &Colliding : PossiblyColliginEntities)
 			{
 				if (Colliding == Entity)
@@ -134,50 +118,37 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 				}
 				if (GameWorld[Colliding].Mesh())
 				{
-					glm::dmat4 CollidingTransform{1};
-					if (GameWorld[Colliding].Children())
-					{
-						CollidingTransform =
-						    GameWorld[Colliding]
-						        .Children()
-						        ->CalculateFullTransform(GameWorld, Colliding);
-					}
-					else if (GameWorld[Colliding].Transform())
-					{
-						CollidingTransform =
-						    GameWorld[Colliding].Transform()->CalculateFull(GameWorld, Colliding);
-					}
-					if (GameWorld[Colliding].Collision() &&
-					    GameWorld[Colliding].Collision()->CollisionMesh)
-					{
-						Transform = Transform * GameWorld[Colliding]
-						                            .Collision()
-						                            ->CollisionMeshToModelSpace;
-					}
-					CollidingTransform =
-					    glm::inverse(CollidingTransform) * Transform;
+					glm::dmat4 CollidingTransform
+					    = CalcCollisionTransform(GameWorld, Colliding);
+
+					CollidingTransform
+					    = glm::inverse(CollidingTransform) * Transform;
 					auto EntityMesh = *GameWorld[Entity].Mesh();
-					if(GameWorld[Entity].Collision() && GameWorld[Entity].Collision()->CollisionMesh)
+					if (GameWorld[Entity].Collision()
+					    && GameWorld[Entity].Collision()->CollisionMesh)
 					{
-						EntityMesh = *GameWorld[Entity].Collision()->CollisionMesh;
+						EntityMesh
+						    = *GameWorld[Entity].Collision()->CollisionMesh;
 					}
 					auto CollidingMesh = *GameWorld[Entity].Mesh();
-					if(GameWorld[Colliding].Collision() && GameWorld[Colliding].Collision()->CollisionMesh)
+					if (GameWorld[Colliding].Collision()
+					    && GameWorld[Colliding].Collision()->CollisionMesh)
 					{
-						CollidingMesh = *GameWorld[Colliding].Collision()->CollisionMesh;
+						CollidingMesh
+						    = *GameWorld[Colliding].Collision()->CollisionMesh;
 					}
 					auto Result = IndevidualCollision(
 					    EntityMesh,
-						CollidingMesh,
+					    CollidingMesh,
 					    CollidingTransform);
 					if (Result)
 					{
 						if (GameWorld[Entity].BasicBackup())
 						{
-							GameWorld[Entity].Position() =
-							    GameWorld[Entity].BasicBackup()->Position;
-							GameWorld[Entity].Transform() =
-							    GameWorld[Entity].BasicBackup()->Transform_;
+							GameWorld[Entity].Position()
+							    = GameWorld[Entity].BasicBackup()->Position;
+							GameWorld[Entity].Transform()
+							    = GameWorld[Entity].BasicBackup()->Transform_;
 							GameWorld.UpdatedEntities.push_back(Entity);
 						}
 						break;
