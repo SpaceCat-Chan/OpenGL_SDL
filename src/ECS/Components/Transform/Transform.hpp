@@ -5,6 +5,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/ext.hpp>
 
+class World;
+
 /**
  * \brief the component containing information about how to transform from Model
  * space to View space
@@ -81,35 +83,10 @@ struct Transform
 	 *
 	 * \return the full transformation matrix
 	 */
-	glm::dmat4x4 CalculateFull(const World &GameWorld, size_t id, bool UseBackup = false) const
-	{
-		glm::dmat4x4 Result(1);
-		for (auto &Matrix : Tranformations)
-		{
-			if (Matrix.first == Type::AutoPosition)
-			{
-				if (GameWorld[id].Position() && !UseBackup)
-				{
-					Result = glm::translate(
-					             glm::dmat4{1},
-					             *GameWorld[id].Position())
-					         * Result;
-				}
-				else if(GameWorld[id].BasicBackup()->Position && UseBackup)
-				{
-					Result = glm::translate(
-					             glm::dmat4{1},
-					             *GameWorld[id].BasicBackup()->Position)
-					         * Result;
-				}
-			}
-			else
-			{
-				Result = Matrix.second * Result;
-			}
-		}
-		return Result;
-	}
+	glm::dmat4x4 CalculateFull(
+	    const World &GameWorld,
+	    size_t id,
+	    bool UseBackup = false) const;
 
 	/**
 	 * \brief checks if there are any rotation transformations
@@ -137,7 +114,11 @@ struct Transform
 	 *
 	 * \return the transformed vector
 	 */
-	glm::dvec4 operator()(glm::dvec4 V, const World &GameWorld, size_t id, bool UseBackup = false) const
+	glm::dvec4 operator()(
+	    glm::dvec4 V,
+	    const World &GameWorld,
+	    size_t id,
+	    bool UseBackup = false) const
 	{
 		return CalculateFull(GameWorld, id, UseBackup) * V;
 	}

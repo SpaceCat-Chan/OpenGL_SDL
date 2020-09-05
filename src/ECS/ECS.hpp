@@ -79,6 +79,7 @@ struct World
 	std::vector<std::optional<BasicBackup>> BackupComponents;
 	std::vector<std::optional<Collision>> CollisionComponents;
 	std::vector<std::optional<std::vector<Force>>> ForceComponents;
+	std::vector<std::optional<Shader>> ShaderComponents;
 
 	public:
 	class EntityReferanceWrapper
@@ -112,44 +113,48 @@ struct World
 		{
 			return m_World->PositionComponents[m_Index];
 		}
-		std::optional<Meshes> &Mesh()
+		std::optional<::Meshes> &Mesh()
 		{
 			return m_World->MeshComponents[m_Index];
 		}
-		std::optional<LightInfo> &Light()
+		std::optional<::LightInfo> &Light()
 		{
 			return m_World->LightComponents[m_Index];
 		}
-		std::optional<Transform> &Transform()
+		std::optional<::Transform> &Transform()
 		{
 			return m_World->TransformComponents[m_Index];
 		}
-		std::optional<Children> &Children()
+		std::optional<::Children> &Children()
 		{
 			return m_World->ChildrenComponents[m_Index];
 		}
-		std::optional<BasicBackup> &BasicBackup()
+		std::optional<::BasicBackup> &BasicBackup()
 		{
 			return m_World->BackupComponents[m_Index];
 		}
-		std::optional<Collision> &Collision()
+		std::optional<::Collision> &Collision()
 		{
 			return m_World->CollisionComponents[m_Index];
 		}
-		std::optional<std::vector<Force>> &Force()
+		std::optional<std::vector<::Force>> &Force()
 		{
 			return m_World->ForceComponents[m_Index];
+		}
+		std::optional<::Shader> &Shader()
+		{
+			return m_World->ShaderComponents[m_Index];
 		}
 
 		const std::optional<glm::dvec3> &Position() const
 		{
 			return m_Const_World->PositionComponents[m_Index];
 		}
-		const std::optional<Meshes> &Mesh() const
+		const std::optional<::Meshes> &Mesh() const
 		{
 			return m_Const_World->MeshComponents[m_Index];
 		}
-		const std::optional<LightInfo> &Light() const
+		const std::optional<::LightInfo> &Light() const
 		{
 			return m_Const_World->LightComponents[m_Index];
 		}
@@ -173,6 +178,10 @@ struct World
 		{
 			return m_Const_World->ForceComponents[m_Index];
 		}
+		const std::optional<::Shader> &Shader() const
+		{
+			return m_Const_World->ShaderComponents[m_Index];
+		}
 
 		void reset()
 		{
@@ -181,12 +190,14 @@ struct World
 			Light() = std::nullopt;
 			Transform() = std::nullopt;
 			Children() = std::nullopt;
-			BasicBackup() = std::nullopt;
+			BasicBackup() = ::BasicBackup{};
 			Collision() = std::nullopt;
+			Force() = std::nullopt;
+			Shader() = std::nullopt;
 		}
 	};
 
-	std::size_t size() { return PositionComponents.size(); }
+	std::size_t size() const { return PositionComponents.size(); }
 
 	inline EntityReferanceWrapper operator[](std::size_t Index)
 	{
@@ -268,6 +279,8 @@ struct World
 			ChildrenComponents.push_back(std::nullopt);
 			BackupComponents.push_back(BasicBackup{});
 			CollisionComponents.push_back(std::nullopt);
+			ForceComponents.push_back(std::nullopt);
+			ShaderComponents.push_back(std::nullopt);
 			CollisionOctree.Add(PositionComponents.size() - 1);
 			UpdatedEntities.push_back(PositionComponents.size() - 1);
 			return PositionComponents.size() - 1;
@@ -290,6 +303,8 @@ struct World
 		TransformComponents.at(Clone) = TransformComponents.at(ID);
 		ChildrenComponents.at(Clone) = ChildrenComponents.at(ID);
 		BackupComponents.at(Clone) = BackupComponents.at(ID);
+		CollisionComponents.at(Clone) = CollisionComponents.at(ID);
+		ForceComponents.at(Clone) = ForceComponents.at(ID);
 		return Clone;
 	}
 };

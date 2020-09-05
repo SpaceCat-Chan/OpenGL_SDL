@@ -47,7 +47,7 @@ CalcCollisionTransform(const World &GameWorld, size_t id, bool UseBackup)
 
 glm::dmat4 CalcCollisionModelTransform(const World &GameWorld, size_t id)
 {
-	if(GameWorld[id].Collision() && GameWorld[id].Collision()->CollisionMesh)
+	if (GameWorld[id].Collision() && GameWorld[id].Collision()->CollisionMesh)
 	{
 		return GameWorld[id].Collision()->CollisionMeshToModelSpace;
 	}
@@ -55,5 +55,28 @@ glm::dmat4 CalcCollisionModelTransform(const World &GameWorld, size_t id)
 	{
 		return glm::dmat4{1};
 	}
-	
+}
+
+Meshes CollisionMesh(const World &GameWorld, size_t id)
+{
+	if (GameWorld[id].Collision() && GameWorld[id].Collision()->CollisionMesh)
+	{
+		return *GameWorld[id].Collision()->CollisionMesh;
+	}
+	else
+	{
+		return *GameWorld[id].Mesh();
+	}
+}
+
+Shader &EntityShader(World &GameWorld, size_t id, bool ForceMainShader)
+{
+	if (GameWorld[id].Shader() && !ForceMainShader)
+	{
+		return *GameWorld[id].Shader();
+	}
+	else
+	{
+		return GameWorld.ShaderProgram;
+	}
 }

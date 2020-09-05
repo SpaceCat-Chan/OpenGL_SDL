@@ -55,7 +55,7 @@ void Camera::SetProjection(glm::dmat4x4 Projection)
 {
 	m_Projection = Projection;
 }
-glm::dmat4x4 Camera::GetProjection()
+glm::dmat4x4 Camera::GetProjection() const
 {
 	return m_Projection;
 }
@@ -64,16 +64,16 @@ void Camera::SetView(glm::dmat4x4 View)
 {
 	m_View = View;
 }
-glm::dmat4x4 Camera::GetView()
+glm::dmat4x4 Camera::GetView() const
 {
 	return m_View;
 }
-glm::dvec3 Camera::GetPosition()
+glm::dvec3 Camera::GetPosition() const
 {
 	return m_Position;
 }
 
-glm::dmat4x4 Camera::GetMVP()
+glm::dmat4x4 Camera::GetMVP() const
 {
 	return m_Projection * m_View;
 }
@@ -94,7 +94,7 @@ void Camera::LockViewPitchYaw()
 	UpdateView();
 }
 
-glm::dvec3 Camera::GetViewVector()
+glm::dvec3 Camera::GetViewVector() const
 {
 	return m_LookVector;
 }

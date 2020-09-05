@@ -51,6 +51,36 @@ struct Meshes
 	 */
 	bool AffectedByLights = true;
 
+	const std::vector<glm::dvec3> &Triangles()
+	{
+		std::vector<glm::dvec3> Filler;
+		std::reference_wrapper<const std::vector<glm::dvec3>> Reference{Filler};
+		if (Type == Meshes::MeshType::Static)
+		{
+			Reference = std::ref(StaticMeshes[MeshIndex].Triangles());
+		}
+		else
+		{
+			Reference = std::ref(TexturedMeshes[MeshIndex].Triangles());
+		}
+		return Reference;
+	}
+
+	std::optional<Octree> &MeshOctree()
+	{
+		std::optional<Octree> Filler;
+		std::reference_wrapper<std::optional<Octree>> Reference{Filler};
+		if (Type == Meshes::MeshType::Static)
+		{
+			Reference = std::ref(StaticOctrees[MeshIndex]);
+		}
+		else
+		{
+			Reference = std::ref(TexturedOctrees[MeshIndex]);
+		}
+		return Reference;
+	}
+
 	Meshes() = default;
 	Meshes(const Meshes &) = default;
 	Meshes(Meshes &&) = default;
@@ -65,7 +95,7 @@ struct Meshes
 	constexpr Meshes &operator=(const Meshes &) = default;
 	constexpr Meshes &operator=(Meshes &&) = default;
 
-	static std::array<glm::dvec3,3> Custom;
+	static std::array<glm::dvec3, 3> Custom;
 
 	static void SetupOctree(MeshType Type, size_t index)
 	{
@@ -78,34 +108,34 @@ struct Meshes
 			{
 				StaticOctrees[index] = Octree{
 				    [index](size_t id) -> std::array<glm::dvec3, 2> {
-					    std::array<glm::dvec3, 3> Triangle = {
-					        StaticMeshes[index].Triangles()[id * 3],
-					        StaticMeshes[index].Triangles()[id * 3 + 1],
-					        StaticMeshes[index].Triangles()[id * 3 + 2]};
-						if(id == size_t(-1))
-						{
-							Triangle = Meshes::Custom;
-						}
-					    glm::dvec3 Min = {
-					        std::min(
-					            std::min(Triangle[0].x, Triangle[1].x),
-					            Triangle[2].x),
-					        std::min(
-					            std::min(Triangle[0].y, Triangle[1].y),
-					            Triangle[2].y),
-					        std::min(
-					            std::min(Triangle[0].z, Triangle[1].z),
-					            Triangle[2].z)};
-					    glm::dvec3 Max = {
-					        std::max(
-					            std::max(Triangle[0].x, Triangle[1].x),
-					            Triangle[2].x),
-					        std::max(
-					            std::max(Triangle[0].y, Triangle[1].y),
-					            Triangle[2].y),
-					        std::max(
-					            std::max(Triangle[0].z, Triangle[1].z),
-					            Triangle[2].z)};
+					    std::array<glm::dvec3, 3> Triangle
+					        = {StaticMeshes[index].Triangles()[id * 3],
+					           StaticMeshes[index].Triangles()[id * 3 + 1],
+					           StaticMeshes[index].Triangles()[id * 3 + 2]};
+					    if (id == size_t(-1))
+					    {
+						    Triangle = Meshes::Custom;
+					    }
+					    glm::dvec3 Min
+					        = {std::min(
+					               std::min(Triangle[0].x, Triangle[1].x),
+					               Triangle[2].x),
+					           std::min(
+					               std::min(Triangle[0].y, Triangle[1].y),
+					               Triangle[2].y),
+					           std::min(
+					               std::min(Triangle[0].z, Triangle[1].z),
+					               Triangle[2].z)};
+					    glm::dvec3 Max
+					        = {std::max(
+					               std::max(Triangle[0].x, Triangle[1].x),
+					               Triangle[2].x),
+					           std::max(
+					               std::max(Triangle[0].y, Triangle[1].y),
+					               Triangle[2].y),
+					           std::max(
+					               std::max(Triangle[0].z, Triangle[1].z),
+					               Triangle[2].z)};
 					    return {Min, Max};
 				    },
 				    1};
@@ -123,30 +153,30 @@ struct Meshes
 			{
 				TexturedOctrees[index] = Octree{
 				    [index](size_t id) -> std::array<glm::dvec3, 2> {
-					    std::array<glm::dvec3, 3> Triangle = {
-					        TexturedMeshes[index].Triangles()[id * 3],
-					        TexturedMeshes[index].Triangles()[id * 3 + 1],
-					        TexturedMeshes[index].Triangles()[id * 3 + 2]};
-					    glm::dvec3 Min = {
-					        std::min(
-					            std::min(Triangle[0].x, Triangle[1].x),
-					            Triangle[2].x),
-					        std::min(
-					            std::min(Triangle[0].y, Triangle[1].y),
-					            Triangle[2].y),
-					        std::min(
-					            std::min(Triangle[0].z, Triangle[1].z),
-					            Triangle[2].z)};
-					    glm::dvec3 Max = {
-					        std::max(
-					            std::max(Triangle[0].x, Triangle[1].x),
-					            Triangle[2].x),
-					        std::max(
-					            std::max(Triangle[0].y, Triangle[1].y),
-					            Triangle[2].y),
-					        std::max(
-					            std::max(Triangle[0].z, Triangle[1].z),
-					            Triangle[2].z)};
+					    std::array<glm::dvec3, 3> Triangle
+					        = {TexturedMeshes[index].Triangles()[id * 3],
+					           TexturedMeshes[index].Triangles()[id * 3 + 1],
+					           TexturedMeshes[index].Triangles()[id * 3 + 2]};
+					    glm::dvec3 Min
+					        = {std::min(
+					               std::min(Triangle[0].x, Triangle[1].x),
+					               Triangle[2].x),
+					           std::min(
+					               std::min(Triangle[0].y, Triangle[1].y),
+					               Triangle[2].y),
+					           std::min(
+					               std::min(Triangle[0].z, Triangle[1].z),
+					               Triangle[2].z)};
+					    glm::dvec3 Max
+					        = {std::max(
+					               std::max(Triangle[0].x, Triangle[1].x),
+					               Triangle[2].x),
+					           std::max(
+					               std::max(Triangle[0].y, Triangle[1].y),
+					               Triangle[2].y),
+					           std::max(
+					               std::max(Triangle[0].z, Triangle[1].z),
+					               Triangle[2].z)};
 					    return {Min, Max};
 				    },
 				    1};

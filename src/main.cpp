@@ -32,7 +32,7 @@ void GLAPIENTRY MessageCallback(
     const GLchar *message,
     const void *userParam) // NOLINT
 {
-	SDL_SetRelativeMouseMode(SDL_FALSE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 	std::cerr << "GL CALLBACK: "
 	          << (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "")
 	          << " type = " << std::hex << type << ", severity = " << severity
@@ -147,6 +147,13 @@ int main(int argc, char **argv) // NOLINT
 		GameWorld[CubeTwo].Transform()->Tranformations.emplace_back(
 		    Transform::Type::AutoPosition,
 		    glm::dmat4x4(1));
+
+		size_t FizzBuzz = GameWorld.CloneEntity(CubeTwo);
+		Shader FizzBuzzShader;
+		FizzBuzzShader.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
+		FizzBuzzShader.AddShaderFile("res/fizzbuzz.frag", GL_FRAGMENT_SHADER);
+		GameWorld[FizzBuzz].Shader() = std::move(FizzBuzzShader);
+		GameWorld[FizzBuzz].Position() = glm::dvec3{0, 2, 0};
 
 		size_t CubeGroupParent = GameWorld.NewEntity();
 		GameWorld[CubeGroupParent].Children() = Children{};

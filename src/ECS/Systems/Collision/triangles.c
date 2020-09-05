@@ -63,14 +63,14 @@ int tri_tri_intersection_test_3d(
     double target[3]);
 
 int coplanar_tri_tri3d(
-    double p1[3],
-    double q1[3],
-    double r1[3],
-    double p2[3],
-    double q2[3],
-    double r2[3],
-    double N1[3],
-    double N2[3]);
+    const double p1[3],
+    const double q1[3],
+    const double r1[3],
+    const double p2[3],
+    const double q2[3],
+    const double r2[3],
+    const double N1[3],
+    const double N2[3]);
 
 // Two dimensional Triangle-Triangle Overlap Test
 int tri_tri_overlap_test_2d(
@@ -175,13 +175,13 @@ int tri_tri_overlap_test_2d(
  */
 
 int tri_tri_overlap_test_3d(
-    double p1[3],
-    double q1[3],
-    double r1[3],
+    const double p1[3],
+    const double q1[3],
+    const double r1[3],
 
-    double p2[3],
-    double q2[3],
-    double r2[3])
+    const double p2[3],
+    const double q2[3],
+    const double r2[3])
 {
 	double dp1, dq1, dr1, dp2, dq2, dr2;
 	double v1[3], v2[3];
@@ -270,14 +270,14 @@ int tri_tri_overlap_test_3d(
 };
 
 int coplanar_tri_tri3d(
-    double p1[3],
-    double q1[3],
-    double r1[3],
-    double p2[3],
-    double q2[3],
-    double r2[3],
-    double normal_1[3],
-    double normal_2[3])
+    const double p1[3],
+    const double q1[3],
+    const double r1[3],
+    const double p2[3],
+    const double q2[3],
+    const double r2[3],
+    const double normal_1[3],
+    const double normal_2[3])
 {
 
 	double P1[2], Q1[2], R1[2];

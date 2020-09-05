@@ -1,9 +1,11 @@
 sources += ['ECS/Components/Meshes/Meshes.cpp',
 'ECS/Components/Children/Children.cpp',
 'ECS/Components/UserInput/UserInput.cpp',
+'ECS/Components/Transform/Transform.cpp',
 'ECS/Systems/Render/Render.cpp',
 'ECS/Systems/UserInput/UserInput.cpp',
-'ECS/Systems/AutoPosition/AutoPosition.cpp',
 'ECS/Systems/Collision/Collision.cpp',
 'ECS/Systems/BasicBackup/BasicBackup.cpp',
-'ECS/TransformedMinMax.cpp']
+'ECS/Systems/Force/Force.cpp',
+'ECS/TransformedMinMax.cpp',
+'ECS/ComponentInterface.cpp']

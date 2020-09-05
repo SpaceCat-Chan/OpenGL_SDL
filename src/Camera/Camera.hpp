@@ -50,26 +50,26 @@ public:
 	const Camera &operator=(Camera &&Move);
 
 	void SetProjection(glm::dmat4x4 Projection);
-	glm::dmat4x4 GetProjection();
+	glm::dmat4x4 GetProjection() const;
 
 	/**
 	 * \brief return the vector signifying the direction the camera is looking
 	 * 
 	 * the vector is either the direction or location, depending on the value of ViewLock
 	 */
-	glm::dvec3 GetViewVector();
+	glm::dvec3 GetViewVector() const;
 	/**
 	 * \brief return what the value of the ViewVector means
 	 */
 	Locked GetViewLock();
 
 	void SetView(glm::dmat4x4 View);
-	glm::dmat4x4 GetView();
+	glm::dmat4x4 GetView() const;
 
 	/**
 	 * \brief get the product of the projection and view matrix
 	 */
-	glm::dmat4x4 GetMVP();
+	glm::dmat4x4 GetMVP() const;
 
 	/**
 	 * \brief sets LookAt to Locked::Position, meaning the camera will try to look at the same position
@@ -174,7 +174,7 @@ public:
 						double MaxRoll = NaN,
 						bool RespectRoll = true);
 
-	glm::dvec3 GetPosition();
+	glm::dvec3 GetPosition() const;
 	/**
 	 * \brief makes the camera move by a certain amount
 	 * 

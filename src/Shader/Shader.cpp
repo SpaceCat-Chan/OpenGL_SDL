@@ -18,6 +18,7 @@ Shader::Shader(Shader &&Move)
 {
 	m_Shaders = std::move(Move.m_Shaders);
 	m_ShaderProgram = std::move(Move.m_ShaderProgram);
+	Move.m_ShaderProgram = 0;
 	m_Linked = Move.m_Linked;
 }
 
