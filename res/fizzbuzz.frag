@@ -131,11 +131,13 @@ void main(void) {
 			Diffuse *= FizzBuzzResult;
 
 
-			vec3 H = normalize(L + P);
+			if(dot(L, N) > 0)
+			{
+				vec3 H = normalize(L + P);
 
-			float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
-			Specular = SpecularPower * u_LightColor[i] * material.Specular;
-
+				float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
+				Specular = SpecularPower * u_LightColor[i] * material.Specular;
+			}
 			Specular *= FizzBuzzResult;
 		}
 		

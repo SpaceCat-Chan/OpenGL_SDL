@@ -141,6 +141,10 @@ int main(int argc, char **argv) // NOLINT
 		GameWorld[BrickWall].Mesh() = {
 		    Meshes::MeshType::Textured,
 		    BrickWall3DMesh};
+		Shader FizzBuzzShader2;
+		FizzBuzzShader2.AddShaderFile("res/shader.vert", GL_VERTEX_SHADER);
+		FizzBuzzShader2.AddShaderFile("res/fizzbuzz.frag", GL_FRAGMENT_SHADER);
+		GameWorld[BrickWall].Shader() = std::move(FizzBuzzShader2);
 
 		GameWorld[CubeTwo].Position() = {3, 3, 3};
 		GameWorld[CubeTwo].Transform() = Transform{};

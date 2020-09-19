@@ -115,15 +115,17 @@ void main(void) {
 				Diffuse *= texture(u_Texture, UV).rgb;
 			}
 
-
-			vec3 H = normalize(L + P);
-
-			float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
-			Specular = SpecularPower * u_LightColor[i] * material.Specular;
-
-			if(u_UseTextures)
+			if(dot(L, N) > 0)
 			{
-				Specular *= texture(u_Specular, UV).rgb;
+				vec3 H = normalize(L + P);
+
+				float SpecularPower = pow(max(dot(N, H), 0.0), material.Shininess);
+				Specular = SpecularPower * u_LightColor[i] * material.Specular;
+
+				if(u_UseTextures)
+				{
+					Specular *= texture(u_Specular, UV).rgb;
+				}
 			}
 		}
 		
