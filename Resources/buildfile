@@ -1,0 +1,7 @@
+file{**}:
+{
+	install = "bin/res/"
+	install.subdirs = true
+}
+
+./: file{**}

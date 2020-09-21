@@ -1,0 +1,11 @@
+: 1
+name: OpenGL_SDL
+version: 0.1.0-a.0.z
+summary: OpenGL_SDL C++ executable
+license: other: proprietary ; Not free/open source.
+description-file: README.md
+url: https://example.org/OpenGL_SDL
+email: 49094338+SpaceCat-Chan@users.noreply.github.com
+depends: * build2 >= 0.13.0
+depends: * bpkg >= 0.13.0
+#depends: libhello ^1.0.0
