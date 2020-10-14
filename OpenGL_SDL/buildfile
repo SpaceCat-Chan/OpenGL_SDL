@@ -1,9 +1,0 @@
-libs =
-import libs += sdl2%lib{sdl2}
-import libs += glew%lib{glew}
-
-exe{OpenGL_SDL}: {hxx cxx}{** -SDL-Helper-Libraries/**}\
- {hxx cxx}{SDL-Helper-Libraries/KeyTracker/* SDL-Helper-Libraries/sfstream/*}\
- $libs
-
-cxx.poptions =+ "-I$out_root" "-I$src_root" "-I$src_base" "-I$out_base"
