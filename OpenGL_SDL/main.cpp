@@ -32,7 +32,7 @@ void GLAPIENTRY MessageCallback(
     const GLchar *message,
     const void *userParam) // NOLINT
 {
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	//SDL_SetRelativeMouseMode(SDL_TRUE);
 	std::cerr << "GL CALLBACK: "
 	          << (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "")
 	          << " type = " << std::hex << type << ", severity = " << severity
@@ -114,7 +114,6 @@ int main(int argc, char **argv) // NOLINT
 	};
 
 	GameWorld.View.CreateProjectionX(glm::radians(90.0), 4.0 / 3.0, 0.01, 1000);
-	GameWorld.View.LookIn();
 	GameWorld.View.MoveTo({-1, -1, -1});
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -123,7 +122,7 @@ int main(int argc, char **argv) // NOLINT
 
 	auto LastTime = std::chrono::high_resolution_clock::now();
 
-	// SDL_SetRelativeMouseMode(SDL_TRUE);
+	//SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	{
 		size_t CubeOne = GameWorld.NewEntity();

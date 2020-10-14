@@ -29,12 +29,18 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 
 		case SDL_MOUSEMOTION:
 			constexpr double Sensitivity = 0.1;
+			/*
 			GameWorld.View.OffsetPitchYaw(
 			    glm::radians(Event.motion.yrel * Sensitivity * -1),
 			    glm::radians(Event.motion.xrel * Sensitivity),
 			    0,
 			    glm::radians(-89.0),
 			    glm::radians(89.0));
+			*/
+			GameWorld.View.RotatePitch(
+			    glm::radians(Event.motion.yrel * Sensitivity));
+			GameWorld.View.RotateYaw(
+			    glm::radians(Event.motion.xrel * Sensitivity));
 		}
 
 		for (auto &Handler : UserInput::PostEvent)
@@ -56,14 +62,14 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 	if (UserInput::Keyboard[SDL_SCANCODE_W].Active)
 	{
 		GameWorld.View.Move(
-		    (glm::normalize(GameWorld.View.GetViewVector())) *
-		    (1.0 * dt.count()));
+		    (glm::normalize(GameWorld.View.GetViewVector()))
+		    * (1.0 * dt.count()));
 	}
 	if (UserInput::Keyboard[SDL_SCANCODE_S].Active)
 	{
 		GameWorld.View.Move(
-		    (glm::normalize(GameWorld.View.GetViewVector())) *
-		    (1.0 * -dt.count()));
+		    (glm::normalize(GameWorld.View.GetViewVector()))
+		    * (1.0 * -dt.count()));
 	}
 
 	if (UserInput::Keyboard[SDL_SCANCODE_E].Active)
@@ -73,18 +79,17 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 	}
 	if (UserInput::Keyboard[SDL_SCANCODE_Q].Active)
 	{
-		*GameWorld[19].Position() +=
-		    glm::dvec3{0.1, 0, 0} * dt.count();
+		*GameWorld[19].Position() += glm::dvec3{0.1, 0, 0} * dt.count();
 		GameWorld.UpdatedEntities.push_back(19);
 	}
 
 	if (UserInput::Keyboard[SDL_SCANCODE_LEFT].Clicked)
 	{
-		GameWorld.View.OffsetPitchYaw(0, 0, -10);
+		GameWorld.View.RotateRoll(glm::radians(-10.0));
 	}
 	if (UserInput::Keyboard[SDL_SCANCODE_RIGHT].Clicked)
 	{
-		GameWorld.View.OffsetPitchYaw(0, 0, 10);
+		GameWorld.View.RotateRoll(glm::radians(10.0));
 	}
 
 	return Error(Error::Type::None);
