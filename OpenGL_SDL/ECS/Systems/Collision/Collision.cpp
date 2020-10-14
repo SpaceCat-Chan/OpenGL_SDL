@@ -93,9 +93,9 @@ Error HandleCollisions(World &GameWorld, DSeconds dt)
 		{
 			glm::dmat4 Transform = CalcCollisionTransform(GameWorld, Entity);
 
-			auto PossiblyColliginEntities
+			auto PossiblyCollidingEntities
 			    = GameWorld.CollisionOctree.GetColliding(Entity);
-			for (auto &Colliding : PossiblyColliginEntities)
+			for (auto &Colliding : PossiblyCollidingEntities)
 			{
 				if (Colliding == Entity)
 				{

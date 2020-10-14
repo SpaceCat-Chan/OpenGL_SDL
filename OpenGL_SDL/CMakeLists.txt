@@ -28,4 +28,9 @@ target_link_libraries(OpenGL_SDL ${OPENGL_LIBRARY})
 target_link_libraries(OpenGL_SDL ${SDL_image_LIBRARIES})
 target_link_libraries(OpenGL_SDL ${SDL_ttf_LIBRARIES})
 
-file(COPY ../res DESTINATION ${CMAKE_BINARY_DIR}/OpenGL_SDL)
+#file(COPY ../res DESTINATION ${CMAKE_BINARY_DIR}/OpenGL_SDL)
+add_custom_command(
+        TARGET OpenGL_SDL POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/res
+                ${CMAKE_BINARY_DIR}/OpenGL_SDL/res)
