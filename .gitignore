@@ -17,3 +17,6 @@
 *.exe.dlls/
 *.exe.manifest
 *.pc
+
+build
+.vscode
