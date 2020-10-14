@@ -208,7 +208,6 @@ LightsAffectingMesh(const World &GameWorld, size_t id, double Interpolation)
 	return Lights;
 }
 
-// ForceMainShader is there for future use
 void Render(
     World &GameWorld,
     bool ForceMainShader = false,
@@ -235,7 +234,7 @@ void Render(
 			ShaderToUse.SetUniform("u_LightType", Lights.Types);
 			ShaderToUse.SetUniform(
 			    "u_AmountOfLights",
-			    (GLuint)Lights.Positions.size());
+			    static_cast<GLuint>(Lights.Positions.size()));
 
 			glm::dmat4 OldTransform = CalcTransform(GameWorld, MeshIndex, true);
 			glm::dmat4 NewTransform = CalcTransform(GameWorld, MeshIndex);
