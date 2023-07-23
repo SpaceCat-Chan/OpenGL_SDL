@@ -5,7 +5,6 @@
 *.i
 *.ii
 *.o
-*.obj
 *.so
 *.dll
 *.a
