@@ -51,7 +51,7 @@ int main(int argc, char **argv) // NOLINT
 	SDL_Init(SDL_INIT_VIDEO);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(
 	    SDL_GL_CONTEXT_PROFILE_MASK,
 	    SDL_GL_CONTEXT_PROFILE_CORE);
@@ -196,8 +196,8 @@ int main(int argc, char **argv) // NOLINT
 
 		size_t CubeGroup2Parent = GameWorld.NewEntity();
 		GameWorld[CubeGroup2Parent].Position() = {0, 1, 0};
-	GameWorld[CubeGroup2Parent].Transform() = Transform{};
-	GameWorld[CubeGroup2Parent].Children() = Children{};
+		GameWorld[CubeGroup2Parent].Transform() = Transform{};
+		GameWorld[CubeGroup2Parent].Children() = Children{};
 		GameWorld[CubeGroup2Parent].Transform()->Tranformations.emplace_back(
 		    Transform::Type::AutoPosition,
 		    glm::dmat4x4(1));

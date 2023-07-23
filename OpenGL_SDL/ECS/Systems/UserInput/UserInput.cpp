@@ -91,6 +91,10 @@ Error UserInputSystem(World &GameWorld, DSeconds dt)
 	{
 		GameWorld.View.RotateRoll(glm::radians(10.0));
 	}
+	if (UserInput::Keyboard(SDLK_UP).Clicked)
+	{
+		GameWorld.View.UpdateView();
+	}
 
 	return Error(Error::Type::None);
 }

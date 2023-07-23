@@ -1,4 +1,4 @@
-#version 430 core
+#version 420 core
 #define MaxLightAmount 8
 
 in Material {

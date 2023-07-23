@@ -90,7 +90,7 @@ glm::dmat4x4 Camera::GetMVP() const
 
 glm::dvec3 Camera::GetViewVector() const
 {
-	return m_Rotation * glm::dvec3{0,0,1};
+	return glm::dvec3{0,0,1} * m_Rotation;
 }
 
 void Camera::CreateProjection(double fovY, double AspectRatio, double NearClip, double FarClip)
@@ -154,8 +154,19 @@ void Camera::UpdateView()
 	}
 	else if(m_FPSmode)
 	{
-		auto Forward =  m_Rotation * glm::dvec3{0,0,1};
-		m_Rotation = glm::quatLookAt(glm::normalize(Forward), glm::normalize(m_FPSUp));
+		auto Forward = GetViewVector();
+		std::cout << "Forward: " << Forward.x << " " << Forward.y << " " << Forward.z << "\n";
+		auto Up = glm::dvec3{0,1,0} * m_Rotation;
+		std::cout << "Up: " << Up.x << " " << Up.y << " " << Up.z << "\n";
+		
+		auto desired_up = -glm::cross(glm::cross(m_FPSUp, Forward), Forward);
+
+		m_Rotation *= glm::dquat{desired_up, Up};
+
+		Forward = GetViewVector();
+		std::cout << "Forward: " << Forward.x << " " << Forward.y << " " << Forward.z << "\n";
+		Up = glm::dvec3{0,1,0} * m_Rotation;
+		std::cout << "Up: " << Up.x << " " << Up.y << " " << Up.z << "\n\n";
 	}
 	m_View = static_cast<glm::dmat4>(m_Rotation) * glm::translate(glm::dmat4{1}, m_Position);
 }
